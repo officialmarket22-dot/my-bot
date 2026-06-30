@@ -106,6 +106,56 @@
 
   .sys-status span { color: var(--green-dim); }
 
+  /* API Key Panel */
+  .apikey-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .apikey-hint {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .apikey-hint a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+
+  .apikey-hint a:hover { text-decoration: underline; }
+
+  .save-key-btn {
+    background: transparent;
+    border: 1px solid var(--green-dim);
+    color: var(--green-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+
+  .save-key-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+    background: var(--green-glow);
+  }
+
+  #key-status {
+    margin-top: 8px;
+    font-size: 0.7rem;
+  }
+
+  .key-saved { color: #00ff88; }
+  .key-error { color: var(--red); }
+
   /* Upload zone */
   .upload-section {
     background: var(--surface);
@@ -432,6 +482,21 @@
     </div>
   </div>
 
+  <!-- API Key Panel -->
+  <div class="apikey-panel" id="apikeyPanel">
+    <div class="panel-title">[ KONFIGURASI API KEY ]</div>
+    <div class="input-group" style="margin-bottom:10px;">
+      <label>Google Gemini API Key (Gratis)</label>
+      <input type="password" id="apiKeyInput" placeholder="Tempel API key kamu di sini...">
+    </div>
+    <div class="apikey-hint">
+      Belum punya key? <a href="https://aistudio.google.com/apikey" target="_blank">Ambil gratis di Google AI Studio →</a>
+      <br>Key tersimpan hanya di browser kamu (localStorage), tidak dikirim ke server manapun selain Google.
+    </div>
+    <button class="save-key-btn" onclick="saveApiKey()">💾 SIMPAN KEY</button>
+    <div id="key-status"></div>
+  </div>
+
   <!-- Upload -->
   <div class="upload-section" id="dropZone">
     <span class="upload-icon">📡</span>
@@ -540,6 +605,37 @@ function drawMatrix() {
 }
 setInterval(drawMatrix, 50);
 
+// ─── API Key Management ────────────────────────────────────────
+let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
+
+function updateKeyStatus() {
+  const statusEl = document.getElementById('key-status');
+  const dropZone = document.getElementById('dropZone');
+  if (geminiApiKey) {
+    statusEl.innerHTML = '<span class="key-saved">✓ API KEY AKTIF — siap upload chart</span>';
+    document.getElementById('apiKeyInput').value = geminiApiKey;
+    dropZone.style.opacity = '1';
+    dropZone.style.pointerEvents = 'auto';
+  } else {
+    statusEl.innerHTML = '<span class="key-error">⚠ Belum ada API key — wajib diisi dulu</span>';
+    dropZone.style.opacity = '0.4';
+    dropZone.style.pointerEvents = 'none';
+  }
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) {
+    document.getElementById('key-status').innerHTML = '<span class="key-error">⚠ Key tidak boleh kosong</span>';
+    return;
+  }
+  geminiApiKey = val;
+  localStorage.setItem('gemini_api_key', val);
+  updateKeyStatus();
+}
+
+updateKeyStatus();
+
 // ─── File Upload ───────────────────────────────────────────────
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
@@ -606,6 +702,10 @@ async function analyzeChart() {
   }
 
   try {
+    if (!geminiApiKey) {
+      throw new Error('API key belum diisi. Scroll ke atas dan masukkan API key dulu.');
+    }
+
     const prompt = `Kamu adalah analis trading profesional dengan keahlian teknikal analisis tinggi.
 
 Analisa chart trading berikut dan berikan analisa LENGKAP dalam format TERMINAL/HACKER style menggunakan teks ASCII.
@@ -656,31 +756,38 @@ R/R     : (risk reward ratio)
 ══════════════════════════════════════
 Tulis HANYA output format di atas, tanpa penjelasan tambahan di luar format.`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: 'image/jpeg',
-                data: imageBase64
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: 'image/jpeg',
+                  data: imageBase64
+                }
               }
-            },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
-    });
+            ]
+          }]
+        })
+      }
+    );
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || 'ERROR: No response from AI.';
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${data.error?.message || JSON.stringify(data)}`);
+    }
+
+    if (data.error) {
+      throw new Error(data.error.message || 'API request failed');
+    }
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ERROR: No response from AI.';
 
     await sleep(300);
     await typeText(output, '\n', 10);
