@@ -268,7 +268,7 @@ async function callGemini(prompt, imageBase64List) {
     const key = await unlockAndGetKey();
     if (!key) throw new Error('API key tidak tersedia');
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.apiKey}`;
+   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.apiKey}`;
   const parts = [{ text: prompt }];
   if (imageBase64List && imageBase64List.length) {
     imageBase64List.forEach(b64 => {
