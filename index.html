@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAU Scalp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0E14; --surface:#12161F; --surface-2:#181D29; --border:#232937;
+    --gold:#C9A227; --gold-soft:#E8C86A;
+    --green:#22C55E; --green-soft:rgba(34,197,94,0.12);
+    --red:#EF4444; --red-soft:rgba(239,68,68,0.12);
+    --text:#E7E9EE; --text-dim:#8B93A7; --text-faint:#565D6E;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:radial-gradient(ellipse 600px 300px at 50% -10%, rgba(201,162,39,0.08), transparent), var(--bg);
+    color:var(--text); font-family:'Inter',sans-serif; min-height:100vh;
+    display:flex; justify-content:center; padding:0 0 60px;
+  }
+  .phone{width:100%; max-width:430px; min-height:100vh; background:var(--bg); position:relative;}
+
+  header{padding:22px 20px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border);}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg, var(--gold-soft), var(--gold) 60%, #8a6f1a); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:#0B0E14;}
+  .brand-text{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; letter-spacing:-0.01em;}
+  .brand-sub{font-size:11px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; margin-top:1px;}
+  .status-pill{display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:6px 10px; border-radius:99px; font-size:11px; font-family:'IBM Plex Mono',monospace; color:var(--text-dim);}
+  .dot{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green);}
+  .gear-btn{width:32px; height:32px; border-radius:9px; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+
+  main{padding:20px;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px;}
+  .card-label{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; margin-bottom:12px;}
+
+  .upload-zone{border:1.5px dashed var(--border); border-radius:12px; padding:32px 16px; text-align:center; background:var(--surface-2); cursor:pointer; position:relative; overflow:hidden;}
+  .upload-zone.has-image{padding:0; border-style:solid;}
+  .upload-zone svg{opacity:0.5; margin-bottom:10px;}
+  .upload-title{font-size:14px; font-weight:500; margin-bottom:4px;}
+  .upload-hint{font-size:12px; color:var(--text-faint);}
+  #fileInput{display:none;}
+  .preview-wrap{position:relative; width:100%; line-height:0;}
+  .preview-wrap img{width:100%; display:block; border-radius:10px;}
+  .remove-img{position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.6); border:none; color:#fff; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:13px;}
+
+  /* scan line while analyzing */
+  .scan-line{position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold-soft), transparent); box-shadow:0 0 10px var(--gold); display:none;}
+  .scanning .scan-line{display:block; animation:scanMove 1.8s linear infinite;}
+  @keyframes scanMove{0%{top:0%;} 100%{top:100%;}}
+
+  .analyze-btn{width:100%; margin-top:14px; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#0B0E14; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px;}
+  .analyze-btn:disabled{opacity:0.85; cursor:default;}
+  .spinner{width:15px; height:15px; border-radius:50%; border:2px solid rgba(11,14,20,0.25); border-top-color:#0B0E14; animation:spin .7s linear infinite; display:none;}
+  .analyze-btn.loading .spinner{display:inline-block;}
+  .analyze-btn.loading .btn-label::after{content:attr(data-loading);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .status-line{display:none; align-items:center; gap:8px; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-dim); min-height:16px;}
+  .status-line.active{display:flex;}
+  .status-line .status-text{animation:fadeSwap .5s ease;}
+  @keyframes fadeSwap{from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:translateY(0);}}
+  .pulse-dot{width:6px; height:6px; border-radius:50%; background:var(--gold); animation:pulseDot 1s ease-in-out infinite;}
+  @keyframes pulseDot{0%,100%{opacity:0.3;} 50%{opacity:1;}}
+
+  /* skeleton loading card */
+  .skeleton-card{display:none;}
+  .skeleton-card.active{display:block;}
+  .skel{border-radius:8px; background:linear-gradient(90deg, var(--surface-2) 25%, var(--border) 37%, var(--surface-2) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite;}
+  @keyframes shimmer{0%{background-position:100% 0;} 100%{background-position:0 0;}}
+
+  .signal-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; position:relative; overflow:hidden; display:none;}
+  .signal-card.active{display:block;}
+  .signal-card.buy::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--green), transparent);}
+  .signal-card.sell::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--red), transparent);}
+  .signal-card.wait::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent);}
+  .signal-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
+  .signal-badge{display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px;}
+  .signal-badge.buy{background:var(--green-soft); color:var(--green);}
+  .signal-badge.sell{background:var(--red-soft); color:var(--red);}
+  .signal-badge.wait{background:rgba(201,162,39,0.14); color:var(--gold-soft);}
+  .confidence{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-dim); text-align:right;}
+  .confidence b{color:var(--gold-soft); font-size:15px;}
+
+  .reasons{margin:14px 0; padding-top:14px; border-top:1px solid var(--border);}
+  .reason-item{display:flex; gap:10px; margin-bottom:10px; font-size:12.5px; line-height:1.5;}
+  .reason-item .rf{color:var(--gold-soft); font-weight:600; flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-size:11px; min-width:88px;}
+  .reason-item .rd{color:var(--text-dim);}
+  .invalid-box{margin-top:12px; padding:10px 12px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:10px; font-size:12px; color:var(--text-dim); line-height:1.5;}
+  .invalid-box b{color:var(--red);}
+
+  .ladder-wrap{background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:18px 14px 18px 0;}
+  .ladder{position:relative; display:flex; height:220px;}
+  .ladder-line{width:46px; position:relative; flex-shrink:0;}
+  .ladder-line::after{content:''; position:absolute; left:50%; top:8px; bottom:8px; width:2px; background:linear-gradient(to bottom, var(--red) 0%, var(--red) 22%, var(--border) 22%, var(--border) 32%, var(--gold) 32%, var(--gold) 68%, var(--border) 68%, var(--border) 78%, var(--green) 78%, var(--green) 100%); transform:translateX(-50%); border-radius:2px;}
+  .ladder-node{position:absolute; left:50%; transform:translate(-50%,-50%); width:11px; height:11px; border-radius:50%; border:2px solid var(--bg);}
+  .node-labels{flex:1; position:relative; padding-left:14px;}
+  .node-row{position:absolute; left:14px; right:0; transform:translateY(-50%); display:flex; align-items:baseline; gap:8px;}
+  .node-tag{font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:0.04em; padding:2px 6px; border-radius:5px;}
+  .node-price{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500;}
+  .node-rr{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-faint); margin-left:auto;}
+  .tag-tp{background:var(--green-soft); color:var(--green);}
+  .tag-entry{background:rgba(201,162,39,0.14); color:var(--gold-soft);}
+  .tag-sl{background:var(--red-soft); color:var(--red);}
+
+  .disclaimer{display:flex; gap:8px; align-items:flex-start; padding:12px 14px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:10px; font-size:11px; color:var(--text-dim); line-height:1.5; margin-bottom:16px;}
+  .disclaimer b{color:var(--red);}
+  .error-box{display:none; padding:12px 14px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:10px; font-size:12px; color:#FCA5A5; margin-bottom:16px; font-family:'IBM Plex Mono',monospace;}
+  .error-box.active{display:block;}
+
+  .history-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .clear-btn{display:flex; align-items:center; gap:5px; background:transparent; border:1px solid var(--border); color:var(--text-faint); padding:6px 10px; border-radius:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; cursor:pointer;}
+  .clear-btn:hover{border-color:var(--red); color:var(--red);}
+  .history-empty{font-size:12px; color:var(--text-faint); text-align:center; padding:14px 0;}
+  .history-item{display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);}
+  .history-item:last-child{border-bottom:none;}
+  .history-left{display:flex; align-items:center; gap:10px;}
+  .history-sig{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px;}
+  .history-time{font-size:11px; color:var(--text-faint);}
+
+  .section-title{font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600;}
+
+  .settings-panel{position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(3px); z-index:50; display:none; justify-content:center; align-items:flex-end;}
+  .settings-panel.open{display:flex;}
+  .settings-inner{width:100%; max-width:430px; background:var(--surface); border:1px solid var(--border); border-bottom:none; border-radius:20px 20px 0 0; padding:20px 20px 28px; max-height:85vh; overflow-y:auto; animation:slideUp .25s ease;}
+  @keyframes slideUp{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .settings-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  .close-btn{background:none; border:none; color:var(--text-faint); font-size:16px; cursor:pointer;}
+  .field-group{margin-bottom:16px;}
+  .field-label{display:block; font-size:11px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;}
+  .field-input{width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'Inter',sans-serif; font-size:13px; outline:none;}
+  .field-textarea{resize:none; height:60px; font-family:'Inter',sans-serif;}
+  .chip-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); padding:8px 14px; border-radius:9px; font-family:'IBM Plex Mono',monospace; font-size:12px; cursor:pointer;}
+  .chip.active{background:rgba(201,162,39,0.14); border-color:var(--gold); color:var(--gold-soft);}
+  .save-settings-btn{width:100%; margin-top:6px; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#0B0E14; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">Au</div>
+      <div>
+        <div class="brand-text">XAU Scalp</div>
+        <div class="brand-sub">GEMINI VISION ENGINE</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="status-pill"><span class="dot"></span> READY</div>
+      <button class="gear-btn" onclick="toggleSettings()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-inner">
+      <div class="settings-head">
+        <span class="section-title">Pengaturan Analisa</span>
+        <button class="close-btn" onclick="toggleSettings()">✕</button>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Market / Pair</label>
+        <select class="field-input" id="marketSelect">
+          <option value="XAUUSD (Gold)">XAUUSD (Gold)</option>
+          <option value="EURUSD">EURUSD</option>
+          <option value="BTCUSD">BTCUSD</option>
+          <option value="US30">US30</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Timeframe Chart</label>
+        <div class="chip-row" id="tfRow">
+          <button class="chip active" data-val="M1">M1</button>
+          <button class="chip" data-val="M5">M5</button>
+          <button class="chip" data-val="M15">M15</button>
+          <button class="chip" data-val="M30">M30</button>
+          <button class="chip" data-val="H1">H1</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Kategori Strategi</label>
+        <div class="chip-row" id="catRow">
+          <button class="chip active" data-val="Scalping">Scalping</button>
+          <button class="chip" data-val="Intraday">Intraday</button>
+          <button class="chip" data-val="Swing">Swing</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Tujuan / Gaya Risiko</label>
+        <select class="field-input" id="goalSelect">
+          <option value="Balanced (R:R standar 1:1.5–1:3)">Balanced (R:R 1:1.5–1:3)</option>
+          <option value="Konservatif (konfirmasi ketat, sinyal sedikit)">Konservatif</option>
+          <option value="Agresif (peluang lebih banyak, risiko lebih tinggi)">Agresif</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Catatan Tambahan (opsional)</label>
+        <textarea class="field-input field-textarea" id="notesInput" placeholder="cth: fokus di sesi London, abaikan news spike, dll"></textarea>
+      </div>
+
+      <button class="save-settings-btn" onclick="toggleSettings()">Simpan Pengaturan</button>
+    </div>
+  </div>
+
+  <main>
+
+    <div class="card">
+      <div class="card-label">01 — Upload Chart</div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+        <div class="upload-title">Tap untuk upload screenshot</div>
+        <div class="upload-hint">PNG / JPG · chart sesuai timeframe di setting</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyzeChart()">
+        <span class="spinner"></span>
+        <span class="btn-label" id="btnLabel" data-loading="Menganalisa...">Analisa Sekarang</span>
+      </button>
+
+      <div class="status-line" id="statusLine">
+        <span class="pulse-dot"></span>
+        <span class="status-text" id="statusText">Membaca gambar chart...</span>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Skeleton while loading -->
+    <div class="card skeleton-card" id="skeletonCard">
+      <div class="skel" style="height:32px; width:110px; border-radius:10px; margin-bottom:14px;"></div>
+      <div class="skel" style="height:12px; width:90%; margin-bottom:8px;"></div>
+      <div class="skel" style="height:12px; width:75%; margin-bottom:16px;"></div>
+      <div class="skel" style="height:180px; border-radius:12px;"></div>
+    </div>
+
+    <!-- Result -->
+    <div class="signal-card" id="signalCard">
+      <div class="signal-top">
+        <div class="signal-badge" id="signalBadge"></div>
+        <div class="confidence">Confidence<br><b id="confidenceVal">–</b></div>
+      </div>
+
+      <div class="reasons" id="reasonsList"></div>
+      <div class="invalid-box" id="invalidBox" style="display:none;"></div>
+
+      <div class="ladder-wrap" id="ladderWrap">
+        <div class="ladder">
+          <div class="ladder-line" id="ladderLine"></div>
+          <div class="node-labels" id="nodeLabels"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <span>⚠️</span>
+      <span><b>Bukan jaminan profit.</b> Sinyal berbasis analisa gambar chart tanpa data real-time. Selalu gunakan stop loss & atur risiko sendiri.</span>
+    </div>
+
+    <div class="card">
+      <div class="history-head">
+        <div class="card-label" style="margin-bottom:0;">Riwayat Analisa</div>
+        <button class="clear-btn" onclick="clearHistory()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          Hapus
+        </button>
+      </div>
+      <div id="historyList">
+        <div class="history-empty">Belum ada riwayat analisa</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ==== GANTI DENGAN API KEY GEMINI KAMU ====
+  const GEMINI_API_KEY = "AQ.Ab8RN6KtAcIVZEkMECaLI8RjT58dhaV08AhG1N9hOn3FH0trCw";
+  const MODEL = "gemini-2.5-flash"; // ganti jika model ini tidak tersedia di akun kamu
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+  let uploadedImageBase64 = null;
+  let uploadedMimeType = null;
+  let history = [];
+
+  // ---- Settings panel ----
+  function toggleSettings(){ document.getElementById('settingsPanel').classList.toggle('open'); }
+  document.querySelectorAll('.chip-row').forEach(row=>{
+    row.addEventListener('click', e=>{
+      if(e.target.classList.contains('chip')){
+        row.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        e.target.classList.add('active');
+      }
+    });
+  });
+  function getActiveChip(rowId){ return document.querySelector('#'+rowId+' .chip.active').dataset.val; }
+
+  // ---- Upload handling ----
+  const fileInput = document.getElementById('fileInput');
+  const uploadZone = document.getElementById('uploadZone');
+  fileInput.addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    uploadedMimeType = file.type;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      uploadedImageBase64 = ev.target.result.split(',')[1];
+      uploadZone.classList.add('has-image');
+      uploadZone.innerHTML = `
+        <div class="preview-wrap">
+          <img src="${ev.target.result}">
+          <button class="remove-img" onclick="removeImage(event)">✕</button>
+          <div class="scan-line" id="scanLine"></div>
+        </div>`;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function removeImage(e){
+    e.stopPropagation();
+    uploadedImageBase64 = null;
+    uploadZone.classList.remove('has-image');
+    uploadZone.innerHTML = `
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+      <div class="upload-title">Tap untuk upload screenshot</div>
+      <div class="upload-hint">PNG / JPG · chart sesuai timeframe di setting</div>`;
+    fileInput.value = '';
+  }
+
+  // ---- Loading animation control ----
+  const statusMessages = [
+    "Membaca struktur harga...",
+    "Mengidentifikasi level support/resistance...",
+    "Mengecek pola candlestick...",
+    "Menghitung risk-reward...",
+    "Menyusun kesimpulan sinyal..."
+  ];
+  let statusInterval = null;
+  function startLoadingUI(){
+    document.getElementById('analyzeBtn').disabled = true;
+    document.getElementById('analyzeBtn').classList.add('loading');
+    document.getElementById('btnLabel').style.visibility = 'hidden';
+    document.getElementById('statusLine').classList.add('active');
+    document.getElementById('skeletonCard').classList.add('active');
+    document.getElementById('signalCard').classList.remove('active');
+    document.getElementById('errorBox').classList.remove('active');
+    uploadZone.classList.add('scanning');
+    let i = 0;
+    const statusText = document.getElementById('statusText');
+    statusText.textContent = statusMessages[0];
+    statusInterval = setInterval(()=>{
+      i = (i+1) % statusMessages.length;
+      statusText.style.opacity = 0;
+      setTimeout(()=>{
+        statusText.textContent = statusMessages[i];
+        statusText.style.opacity = 1;
+      }, 200);
+    }, 1400);
+  }
+  function stopLoadingUI(){
+    clearInterval(statusInterval);
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('analyzeBtn').classList.remove('loading');
+    document.getElementById('btnLabel').style.visibility = 'visible';
+    document.getElementById('statusLine').classList.remove('active');
+    document.getElementById('skeletonCard').classList.remove('active');
+    uploadZone.classList.remove('scanning');
+  }
+
+  // ---- Build prompt from settings ----
+  function buildPrompt(){
+    const market = document.getElementById('marketSelect').value;
+    const tf = getActiveChip('tfRow');
+    const category = getActiveChip('catRow');
+    const goal = document.getElementById('goalSelect').value;
+    const notes = document.getElementById('notesInput').value.trim();
+
+    return `Kamu adalah analis teknikal untuk ${category} pada market ${market}, timeframe ${tf}.
+Gaya risiko yang diinginkan user: ${goal}.
+${notes ? "Catatan tambahan dari user: " + notes : ""}
+
+Analisa gambar chart yang diberikan dan balas HANYA dengan JSON valid (tanpa markdown, tanpa teks lain), dengan format persis:
+
+{
+  "signal": "BUY" atau "SELL" atau "NO_TRADE",
+  "setup_status": "confirmed" atau "conditional",
+  "trigger_condition": "jika conditional, jelaskan syarat harga yang harus terpenuhi dulu sebelum entry (misal: breakout dan close di atas 4075.00). Kosongkan jika confirmed.",
+  "confidence": angka 0-100,
+  "entry_price": angka,
+  "stop_loss": angka,
+  "take_profit": {"tp1": angka, "tp2": angka, "tp3": angka},
+  "risk_reward": {"tp1": "1:x", "tp2": "1:x", "tp3": "1:x"},
+  "valid_reasons": [
+    {"factor": "nama faktor singkat", "detail": "penjelasan konkret merujuk elemen visual di chart"}
+  ],
+  "invalidating_factors": "kondisi yang membatalkan sinyal ini, harga berapa yang jadi tanda gagal"
+}
+
+Aturan penting:
+- SELALU berikan entry_price, stop_loss, dan take_profit (tp1/tp2/tp3) berupa angka, SELAMA ada bias arah (bullish atau bearish) yang terlihat di chart — walaupun belum ada breakout/konfirmasi penuh. Dalam kondisi ini, set "signal" ke arah bias tersebut (BUY/SELL), "setup_status" ke "conditional", dan isi "trigger_condition" dengan syarat masuknya.
+- Gunakan "signal": "NO_TRADE" HANYA jika gambar benar-benar tidak bisa dibaca (buram, terpotong, tidak ada candle terlihat) atau harga benar-benar sideways datar tanpa bias arah sama sekali. Ini harus jarang terjadi — jangan jadikan pilihan aman default.
+- valid_reasons minimal 2, maksimal 4, HARUS merujuk elemen visual konkret yang benar-benar terlihat di gambar (price action, level, pola candlestick, struktur trend).
+- Jangan tambahkan teks penjelasan di luar JSON.`;
+  }
+
+  // ---- Analyze ----
+  async function analyzeChart(){
+    if(!uploadedImageBase64){
+      showError("Upload screenshot chart dulu sebelum analisa.");
+      return;
+    }
+    startLoadingUI();
+    try{
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: buildPrompt() },
+              { inline_data: { mime_type: uploadedMimeType, data: uploadedImageBase64 } }
+            ]
+          }]
+        })
+      });
+
+      if(res.status === 429){
+        throw new Error("Kuota Gemini API habis (429). Coba lagi nanti atau cek limit di Google AI Studio.");
+      }
+      if(!res.ok){
+        const errText = await res.text();
+        throw new Error(`API error ${res.status}: ${errText.slice(0,150)}`);
+      }
+
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if(!rawText) throw new Error("Respons kosong dari Gemini.");
+
+      const cleaned = rawText.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+
+      renderResult(parsed);
+      addHistory(parsed);
+
+    }catch(err){
+      showError(err.message || "Terjadi kesalahan saat menganalisa.");
+    }finally{
+      stopLoadingUI();
+    }
+  }
+
+  function showError(msg){
+    const box = document.getElementById('errorBox');
+    box.textContent = "⚠ " + msg;
+    box.classList.add('active');
+  }
+
+  // ---- Render result ----
+  function renderResult(data){
+    const card = document.getElementById('signalCard');
+    const badge = document.getElementById('signalBadge');
+    card.classList.remove('buy','sell','wait');
+
+    const sig = (data.signal || "NO_TRADE").toUpperCase();
+    const isConditional = data.setup_status === 'conditional';
+    let cls = 'wait', arrow = '●', label = 'NO TRADE';
+    if(sig === 'BUY'){ cls='buy'; arrow='▲'; label = isConditional ? 'BUY · SETUP' : 'BUY'; }
+    if(sig === 'SELL'){ cls='sell'; arrow='▼'; label = isConditional ? 'SELL · SETUP' : 'SELL'; }
+    card.classList.add(cls);
+    badge.className = 'signal-badge ' + cls;
+    badge.innerHTML = `<span>${arrow}</span> ${label}`;
+
+    document.getElementById('confidenceVal').textContent = (data.confidence ?? '–') + '%';
+
+    const reasonsEl = document.getElementById('reasonsList');
+    reasonsEl.innerHTML = '';
+
+    if(isConditional && data.trigger_condition){
+      reasonsEl.innerHTML += `<div class="reason-item"><span class="rf" style="color:var(--gold-soft);">MENUNGGU</span><span class="rd"><b style="color:var(--text);">${data.trigger_condition}</b></span></div>`;
+    }
+
+    (data.valid_reasons || []).forEach(r=>{
+      reasonsEl.innerHTML += `<div class="reason-item"><span class="rf">${r.factor}</span><span class="rd">${r.detail}</span></div>`;
+    });
+
+    const invalidBox = document.getElementById('invalidBox');
+    if(data.invalidating_factors){
+      invalidBox.style.display = 'block';
+      invalidBox.innerHTML = `<b>Batal jika:</b> ${data.invalidating_factors}`;
+    } else {
+      invalidBox.style.display = 'none';
+    }
+
+    const ladderWrap = document.getElementById('ladderWrap');
+    const hasLevels = data.entry_price != null && data.stop_loss != null;
+    if(sig === 'NO_TRADE' || !hasLevels){
+      ladderWrap.style.display = 'none';
+    } else {
+      ladderWrap.style.display = 'block';
+      renderLadder(data, sig);
+    }
+
+    card.classList.add('active');
+  }
+
+  function renderLadder(data, sig){
+    const tp = data.take_profit || {};
+    const rr = data.risk_reward || {};
+    const entry = data.entry_price;
+    const sl = data.stop_loss;
+
+    const isBuy = sig === 'BUY';
+    // position from top(%) - for BUY: tp3 top, tp1, entry, sl bottom. For SELL: reversed.
+    const rows = isBuy ? [
+      {tag:'tag-tp', label:'TP3', price: tp.tp3, rr: rr.tp3, pos:12},
+      {tag:'tag-tp', label:'TP1', price: tp.tp1, rr: rr.tp1, pos:34},
+      {tag:'tag-entry', label:'ENTRY', price: entry, rr:null, pos:50},
+      {tag:'tag-sl', label:'SL', price: sl, rr:'−1', pos:78},
+    ] : [
+      {tag:'tag-sl', label:'SL', price: sl, rr:'−1', pos:12},
+      {tag:'tag-entry', label:'ENTRY', price: entry, rr:null, pos:34},
+      {tag:'tag-tp', label:'TP1', price: tp.tp1, rr: rr.tp1, pos:50},
+      {tag:'tag-tp', label:'TP3', price: tp.tp3, rr: rr.tp3, pos:78},
+    ];
+
+    const line = document.getElementById('ladderLine');
+    const labels = document.getElementById('nodeLabels');
+    line.innerHTML = '';
+    labels.innerHTML = '';
+
+    rows.forEach(r=>{
+      const color = r.tag === 'tag-tp' ? 'var(--green)' : r.tag === 'tag-sl' ? 'var(--red)' : 'var(--gold)';
+      line.innerHTML += `<div class="ladder-node" style="top:${r.pos}%; background:${color};"></div>`;
+      labels.innerHTML += `
+        <div class="node-row" style="top:${r.pos}%;">
+          <span class="node-tag ${r.tag}">${r.label}</span>
+          <span class="node-price">${r.price ?? '–'}</span>
+          ${r.rr ? `<span class="node-rr">${r.rr}</span>` : ''}
+        </div>`;
+    });
+  }
+
+  // ---- History ----
+  function addHistory(data){
+    const time = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+    history.unshift({signal: data.signal, time, tf: getActiveChip('tfRow')});
+    renderHistory();
+  }
+  function renderHistory(){
+    const el = document.getElementById('historyList');
+    if(history.length === 0){
+      el.innerHTML = '<div class="history-empty">Belum ada riwayat analisa</div>';
+      return;
+    }
+    el.innerHTML = history.map(h=>{
+      const cls = h.signal === 'BUY' ? 'green' : h.signal === 'SELL' ? 'red' : 'gold';
+      const colorMap = {green:'var(--green-soft);color:var(--green)', red:'var(--red-soft);color:var(--red)', gold:'rgba(201,162,39,0.14);color:var(--gold-soft)'};
+      return `<div class="history-item">
+        <div class="history-left">
+          <span class="history-sig" style="background:${colorMap[cls]}">${h.signal}</span>
+          <span class="history-time">${h.time} · ${h.tf}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  function clearHistory(){
+    history = [];
+    renderHistory();
+  }
+</script>
+</body>
+</html>
