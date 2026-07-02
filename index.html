@@ -3,924 +3,579 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TERMINAL//ASSISTANT</title>
+<title>XAU Scalp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-
-  :root {
-    --green: #00ff41;
-    --green-dim: #00cc33;
-    --green-faint: #003b0f;
-    --green-glow: rgba(0,255,65,0.15);
-    --bg: #010a03;
-    --surface: #050f06;
-    --border: #0a2a0d;
-    --border-bright: #00ff4133;
-    --red: #ff2244;
-    --yellow: #ffd700;
-    --cyan: #00ffcc;
-    --purple: #b066ff;
-    --text-dim: #4a7a52;
+  :root{
+    --bg:#0B0E14; --surface:#12161F; --surface-2:#181D29; --border:#232937;
+    --gold:#C9A227; --gold-soft:#E8C86A;
+    --green:#22C55E; --green-soft:rgba(34,197,94,0.12);
+    --red:#EF4444; --red-soft:rgba(239,68,68,0.12);
+    --text:#E7E9EE; --text-dim:#8B93A7; --text-faint:#565D6E;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  html { height: 100%; }
-
-  body {
-    background: var(--bg);
-    color: var(--green);
-    font-family: 'Share Tech Mono', monospace;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:radial-gradient(ellipse 600px 300px at 50% -10%, rgba(201,162,39,0.08), transparent), var(--bg);
+    color:var(--text); font-family:'Inter',sans-serif; min-height:100vh;
+    display:flex; justify-content:center; padding:0 0 60px;
   }
-
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 2px,
-      rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  /* ── Header ──────────────────────────────────── */
-  .header {
-    padding: 14px 16px 10px;
-    border-bottom: 1px solid var(--border-bright);
-    flex-shrink: 0;
-  }
-
-  .header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .logo {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.05rem;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    color: var(--green);
-    text-shadow: 0 0 12px var(--green);
-  }
-
-  .logo span { color: var(--cyan); }
-
-  .header-btns { display: flex; gap: 8px; }
-
-  .icon-btn {
-    background: transparent;
-    border: 1px solid var(--border-bright);
-    color: var(--green-dim);
-    width: 32px; height: 32px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-  }
-
-  .icon-btn:active { background: var(--green-glow); border-color: var(--green); }
-  .icon-btn.active { background: var(--green-glow); border-color: var(--green); color: var(--green); }
-
-  /* ── Mode indicator bar ──────────────────────── */
-  .mode-bar {
-    display: flex;
-    gap: 6px;
-    margin-top: 10px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-
-  .mode-chip {
-    font-size: 0.62rem;
-    padding: 4px 9px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--text-dim);
-    white-space: nowrap;
-    letter-spacing: 0.05em;
-  }
-
-  .mode-chip.live {
-    border-color: var(--green);
-    color: var(--green);
-    background: var(--green-glow);
-  }
-
-  /* ── Settings Panel ──────────────────────────── */
-  .settings-panel {
-    display: none;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border-bright);
-    padding: 16px;
-    flex-shrink: 0;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  .settings-panel.open { display: block; }
-
-  .panel-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    color: var(--green-dim);
-    margin-bottom: 12px;
-  }
-
-  .key-group {
-    margin-bottom: 14px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .key-group:last-of-type { border-bottom: none; }
-
-  .key-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.72rem;
-    color: var(--green);
-    margin-bottom: 6px;
-  }
-
-  .key-label .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
-  .key-label .dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
-
-  .key-row { display: flex; gap: 6px; }
-
-  .key-row input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--green);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
-    padding: 8px 10px;
-    border-radius: 3px;
-    outline: none;
-    min-width: 0;
-  }
-
-  .key-row input:focus { border-color: var(--green-dim); }
-
-  .key-row button {
-    background: transparent;
-    border: 1px solid var(--green-dim);
-    color: var(--green-dim);
-    font-size: 0.7rem;
-    padding: 0 12px;
-    border-radius: 3px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .key-hint {
-    font-size: 0.64rem;
-    color: var(--text-dim);
-    margin-top: 5px;
-    line-height: 1.5;
-  }
-
-  .key-hint a { color: var(--cyan); text-decoration: none; }
-
-  .voice-toggle-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 10px;
-  }
-
-  .voice-toggle-row span { font-size: 0.72rem; color: var(--green); }
-
-  .switch {
-    width: 40px; height: 22px;
-    background: var(--border);
-    border-radius: 11px;
-    position: relative;
-    cursor: pointer;
-    border: 1px solid var(--border-bright);
-    transition: background 0.2s;
-  }
-
-  .switch.on { background: var(--green-faint); border-color: var(--green); }
-
-  .switch::after {
-    content: '';
-    position: absolute;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--text-dim);
-    top: 2px; left: 2px;
-    transition: all 0.2s;
-  }
-
-  .switch.on::after { background: var(--green); left: 20px; box-shadow: 0 0 6px var(--green); }
-
-  .clear-history-btn {
-    width: 100%;
-    margin-top: 14px;
-    background: transparent;
-    border: 1px solid var(--red);
-    color: var(--red);
-    font-size: 0.7rem;
-    padding: 9px;
-    border-radius: 3px;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-  }
-
-  /* ── Chat area ───────────────────────────────── */
-  .chat-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .empty-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--text-dim);
-    padding: 20px;
-  }
-
-  .empty-state .big-icon { font-size: 2.4rem; margin-bottom: 12px; opacity: 0.5; }
-  .empty-state .title { font-family: 'Orbitron', monospace; font-size: 0.85rem; color: var(--green-dim); margin-bottom: 8px; letter-spacing: 0.1em; }
-  .empty-state .sub { font-size: 0.72rem; line-height: 1.7; max-width: 280px; }
-
-  .msg {
-    max-width: 88%;
-    animation: fadeIn 0.25s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .msg.user { align-self: flex-end; }
-  .msg.ai { align-self: flex-start; }
-
-  .msg-meta {
-    font-size: 0.62rem;
-    color: var(--text-dim);
-    margin-bottom: 4px;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-
-  .msg.user .msg-meta { justify-content: flex-end; }
-
-  .provider-tag {
-    font-size: 0.6rem;
-    padding: 1px 7px;
-    border-radius: 8px;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-  }
-
-  .provider-tag.gemini { background: rgba(0,255,204,0.15); color: var(--cyan); border: 1px solid var(--cyan); }
-  .provider-tag.groq { background: rgba(255,215,0,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
-  .provider-tag.deepseek { background: rgba(176,102,255,0.15); color: var(--purple); border: 1px solid var(--purple); }
-
-  .msg-bubble {
-    padding: 10px 13px;
-    border-radius: 4px;
-    font-size: 0.82rem;
-    line-height: 1.65;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-
-  .msg.user .msg-bubble {
-    background: var(--green-faint);
-    border: 1px solid var(--green-dim);
-    color: var(--green);
-    border-bottom-right-radius: 0;
-  }
-
-  .msg.ai .msg-bubble {
-    background: var(--surface);
-    border: 1px solid var(--border-bright);
-    color: var(--green);
-    border-bottom-left-radius: 0;
-  }
-
-  .msg-img-preview {
-    max-width: 200px;
-    border-radius: 4px;
-    border: 1px solid var(--border-bright);
-    margin-bottom: 6px;
-    display: block;
-  }
-
-  .msg-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 6px;
-  }
-
-  .msg-actions button {
-    background: transparent;
-    border: none;
-    color: var(--text-dim);
-    font-size: 0.7rem;
-    cursor: pointer;
-    padding: 2px 4px;
-  }
-
-  .msg-actions button:active { color: var(--green); }
-  .msg-actions button.speaking { color: var(--cyan); }
-
-  .typing-indicator {
-    display: flex;
-    gap: 4px;
-    padding: 12px;
-  }
-
-  .typing-indicator span {
-    width: 6px; height: 6px;
-    background: var(--green-dim);
-    border-radius: 50%;
-    animation: typingBounce 1.2s infinite;
-  }
-
-  .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
-  .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
-
-  @keyframes typingBounce {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-    30% { transform: translateY(-5px); opacity: 1; }
-  }
-
-  /* ── Image preview before send ───────────────── */
-  .pending-image {
-    display: none;
-    padding: 8px 16px;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-
-  .pending-image.show { display: flex; }
-
-  .pending-image img {
-    width: 44px; height: 44px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid var(--border-bright);
-  }
-
-  .pending-image .info { flex: 1; font-size: 0.68rem; color: var(--text-dim); }
-  .pending-image .remove-img { background: transparent; border: none; color: var(--red); font-size: 1rem; cursor: pointer; }
-
-  /* ── Input area ──────────────────────────────── */
-  .input-area {
-    flex-shrink: 0;
-    border-top: 1px solid var(--border-bright);
-    padding: 10px 12px;
-    background: var(--bg);
-  }
-
-  .input-row {
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-  }
-
-  .input-row textarea {
-    flex: 1;
-    background: var(--surface);
-    border: 1px solid var(--border-bright);
-    color: var(--green);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.85rem;
-    padding: 10px 12px;
-    border-radius: 6px;
-    outline: none;
-    resize: none;
-    max-height: 100px;
-    min-height: 40px;
-  }
-
-  .input-row textarea:focus { border-color: var(--green); }
-
-  .round-btn {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--border-bright);
-    background: var(--surface);
-    color: var(--green-dim);
-    font-size: 1.1rem;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .round-btn.send {
-    background: var(--green-faint);
-    border-color: var(--green);
-    color: var(--green);
-  }
-
-  .round-btn:active { transform: scale(0.92); }
-  .round-btn:disabled { opacity: 0.4; }
-
-  #fileInput { display: none; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
-
+  .phone{width:100%; max-width:430px; min-height:100vh; background:var(--bg); position:relative;}
+
+  header{padding:22px 20px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border);}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg, var(--gold-soft), var(--gold) 60%, #8a6f1a); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:#0B0E14;}
+  .brand-text{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; letter-spacing:-0.01em;}
+  .brand-sub{font-size:11px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; margin-top:1px;}
+  .status-pill{display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:6px 10px; border-radius:99px; font-size:11px; font-family:'IBM Plex Mono',monospace; color:var(--text-dim);}
+  .dot{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green);}
+  .gear-btn{width:32px; height:32px; border-radius:9px; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+
+  main{padding:20px;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px;}
+  .card-label{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; margin-bottom:12px;}
+
+  .upload-zone{border:1.5px dashed var(--border); border-radius:12px; padding:32px 16px; text-align:center; background:var(--surface-2); cursor:pointer; position:relative; overflow:hidden;}
+  .upload-zone.has-image{padding:0; border-style:solid;}
+  .upload-zone svg{opacity:0.5; margin-bottom:10px;}
+  .upload-title{font-size:14px; font-weight:500; margin-bottom:4px;}
+  .upload-hint{font-size:12px; color:var(--text-faint);}
+  #fileInput{display:none;}
+  .preview-wrap{position:relative; width:100%; line-height:0;}
+  .preview-wrap img{width:100%; display:block; border-radius:10px;}
+  .remove-img{position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.6); border:none; color:#fff; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:13px;}
+
+  /* scan line while analyzing */
+  .scan-line{position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold-soft), transparent); box-shadow:0 0 10px var(--gold); display:none;}
+  .scanning .scan-line{display:block; animation:scanMove 1.8s linear infinite;}
+  @keyframes scanMove{0%{top:0%;} 100%{top:100%;}}
+
+  .analyze-btn{width:100%; margin-top:14px; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#0B0E14; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px;}
+  .analyze-btn:disabled{opacity:0.85; cursor:default;}
+  .spinner{width:15px; height:15px; border-radius:50%; border:2px solid rgba(11,14,20,0.25); border-top-color:#0B0E14; animation:spin .7s linear infinite; display:none;}
+  .analyze-btn.loading .spinner{display:inline-block;}
+  .analyze-btn.loading .btn-label::after{content:attr(data-loading);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .status-line{display:none; align-items:center; gap:8px; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-dim); min-height:16px;}
+  .status-line.active{display:flex;}
+  .status-line .status-text{animation:fadeSwap .5s ease;}
+  @keyframes fadeSwap{from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:translateY(0);}}
+  .pulse-dot{width:6px; height:6px; border-radius:50%; background:var(--gold); animation:pulseDot 1s ease-in-out infinite;}
+  @keyframes pulseDot{0%,100%{opacity:0.3;} 50%{opacity:1;}}
+
+  /* skeleton loading card */
+  .skeleton-card{display:none;}
+  .skeleton-card.active{display:block;}
+  .skel{border-radius:8px; background:linear-gradient(90deg, var(--surface-2) 25%, var(--border) 37%, var(--surface-2) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite;}
+  @keyframes shimmer{0%{background-position:100% 0;} 100%{background-position:0 0;}}
+
+  .signal-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; position:relative; overflow:hidden; display:none;}
+  .signal-card.active{display:block;}
+  .signal-card.buy::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--green), transparent);}
+  .signal-card.sell::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--red), transparent);}
+  .signal-card.wait::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent);}
+  .signal-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
+  .signal-badge{display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px;}
+  .signal-badge.buy{background:var(--green-soft); color:var(--green);}
+  .signal-badge.sell{background:var(--red-soft); color:var(--red);}
+  .signal-badge.wait{background:rgba(201,162,39,0.14); color:var(--gold-soft);}
+  .confidence{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-dim); text-align:right;}
+  .confidence b{color:var(--gold-soft); font-size:15px;}
+
+  .reasons{margin:14px 0; padding-top:14px; border-top:1px solid var(--border);}
+  .reason-item{display:flex; gap:10px; margin-bottom:10px; font-size:12.5px; line-height:1.5;}
+  .reason-item .rf{color:var(--gold-soft); font-weight:600; flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-size:11px; min-width:88px;}
+  .reason-item .rd{color:var(--text-dim);}
+  .invalid-box{margin-top:12px; padding:10px 12px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:10px; font-size:12px; color:var(--text-dim); line-height:1.5;}
+  .invalid-box b{color:var(--red);}
+
+  .ladder-wrap{background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:18px 14px 18px 0;}
+  .ladder{position:relative; display:flex; height:220px;}
+  .ladder-line{width:46px; position:relative; flex-shrink:0;}
+  .ladder-line::after{content:''; position:absolute; left:50%; top:8px; bottom:8px; width:2px; background:linear-gradient(to bottom, var(--red) 0%, var(--red) 22%, var(--border) 22%, var(--border) 32%, var(--gold) 32%, var(--gold) 68%, var(--border) 68%, var(--border) 78%, var(--green) 78%, var(--green) 100%); transform:translateX(-50%); border-radius:2px;}
+  .ladder-node{position:absolute; left:50%; transform:translate(-50%,-50%); width:11px; height:11px; border-radius:50%; border:2px solid var(--bg);}
+  .node-labels{flex:1; position:relative; padding-left:14px;}
+  .node-row{position:absolute; left:14px; right:0; transform:translateY(-50%); display:flex; align-items:baseline; gap:8px;}
+  .node-tag{font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:0.04em; padding:2px 6px; border-radius:5px;}
+  .node-price{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500;}
+  .node-rr{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-faint); margin-left:auto;}
+  .tag-tp{background:var(--green-soft); color:var(--green);}
+  .tag-entry{background:rgba(201,162,39,0.14); color:var(--gold-soft);}
+  .tag-sl{background:var(--red-soft); color:var(--red);}
+
+  .disclaimer{display:flex; gap:8px; align-items:flex-start; padding:12px 14px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:10px; font-size:11px; color:var(--text-dim); line-height:1.5; margin-bottom:16px;}
+  .disclaimer b{color:var(--red);}
+  .error-box{display:none; padding:12px 14px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:10px; font-size:12px; color:#FCA5A5; margin-bottom:16px; font-family:'IBM Plex Mono',monospace;}
+  .error-box.active{display:block;}
+
+  .history-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .clear-btn{display:flex; align-items:center; gap:5px; background:transparent; border:1px solid var(--border); color:var(--text-faint); padding:6px 10px; border-radius:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; cursor:pointer;}
+  .clear-btn:hover{border-color:var(--red); color:var(--red);}
+  .history-empty{font-size:12px; color:var(--text-faint); text-align:center; padding:14px 0;}
+  .history-item{display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);}
+  .history-item:last-child{border-bottom:none;}
+  .history-left{display:flex; align-items:center; gap:10px;}
+  .history-sig{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px;}
+  .history-time{font-size:11px; color:var(--text-faint);}
+
+  .section-title{font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600;}
+
+  .settings-panel{position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(3px); z-index:50; display:none; justify-content:center; align-items:flex-end;}
+  .settings-panel.open{display:flex;}
+  .settings-inner{width:100%; max-width:430px; background:var(--surface); border:1px solid var(--border); border-bottom:none; border-radius:20px 20px 0 0; padding:20px 20px 28px; max-height:85vh; overflow-y:auto; animation:slideUp .25s ease;}
+  @keyframes slideUp{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .settings-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  .close-btn{background:none; border:none; color:var(--text-faint); font-size:16px; cursor:pointer;}
+  .field-group{margin-bottom:16px;}
+  .field-label{display:block; font-size:11px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;}
+  .field-input{width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'Inter',sans-serif; font-size:13px; outline:none;}
+  .field-textarea{resize:none; height:60px; font-family:'Inter',sans-serif;}
+  .chip-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); padding:8px 14px; border-radius:9px; font-family:'IBM Plex Mono',monospace; font-size:12px; cursor:pointer;}
+  .chip.active{background:rgba(201,162,39,0.14); border-color:var(--gold); color:var(--gold-soft);}
+  .save-settings-btn{width:100%; margin-top:6px; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#0B0E14; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; cursor:pointer;}
 </style>
 </head>
 <body>
+<div class="phone">
 
-  <!-- Header -->
-  <div class="header">
-    <div class="header-top">
-      <div class="logo">TERMINAL<span>//</span>ASSISTANT</div>
-      <div class="header-btns">
-        <button class="icon-btn" id="voiceQuickToggle" onclick="toggleVoiceQuick()" title="Suara">🔊</button>
-        <button class="icon-btn" id="settingsToggle" onclick="toggleSettings()" title="Pengaturan">⚙️</button>
+  <header>
+    <div class="brand">
+      <div class="brand-mark">Au</div>
+      <div>
+        <div class="brand-text">XAU Scalp</div>
+        <div class="brand-sub">GEMINI VISION ENGINE</div>
       </div>
     </div>
-    <div class="mode-bar" id="modeBar">
-      <div class="mode-chip" data-mode="gemini">📈 GEMINI · Vision/Market</div>
-      <div class="mode-chip" data-mode="groq">💬 GROQ · Chat Cepat</div>
-      <div class="mode-chip" data-mode="deepseek">💻 DEEPSEEK · Coding</div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="status-pill"><span class="dot"></span> READY</div>
+      <button class="gear-btn" onclick="toggleSettings()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
     </div>
-  </div>
+  </header>
 
-  <!-- Settings -->
   <div class="settings-panel" id="settingsPanel">
-    <div class="panel-title">[ KONFIGURASI API KEYS ]</div>
-
-    <div class="key-group">
-      <div class="key-label"><span class="dot" id="dot-gemini"></span> GEMINI (vision, market, gambar)</div>
-      <div class="key-row">
-        <input type="password" id="key-gemini" placeholder="AIzaSy... atau AQ...">
-        <button onclick="saveKey('gemini')">SIMPAN</button>
+    <div class="settings-inner">
+      <div class="settings-head">
+        <span class="section-title">Pengaturan Analisa</span>
+        <button class="close-btn" onclick="toggleSettings()">✕</button>
       </div>
-      <div class="key-hint">Gratis di <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></div>
-    </div>
 
-    <div class="key-group">
-      <div class="key-label"><span class="dot" id="dot-groq"></span> GROQ (chat umum, super cepat)</div>
-      <div class="key-row">
-        <input type="password" id="key-groq" placeholder="gsk_...">
-        <button onclick="saveKey('groq')">SIMPAN</button>
+      <div class="field-group">
+        <label class="field-label">Market / Pair</label>
+        <select class="field-input" id="marketSelect">
+          <option value="XAUUSD (Gold)">XAUUSD (Gold)</option>
+          <option value="EURUSD">EURUSD</option>
+          <option value="BTCUSD">BTCUSD</option>
+          <option value="US30">US30</option>
+        </select>
       </div>
-      <div class="key-hint">Gratis di <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
-    </div>
 
-    <div class="key-group">
-      <div class="key-label"><span class="dot" id="dot-deepseek"></span> DEEPSEEK (coding & debug)</div>
-      <div class="key-row">
-        <input type="password" id="key-deepseek" placeholder="sk-...">
-        <button onclick="saveKey('deepseek')">SIMPAN</button>
+      <div class="field-group">
+        <label class="field-label">Timeframe Chart</label>
+        <div class="chip-row" id="tfRow">
+          <button class="chip active" data-val="M1">M1</button>
+          <button class="chip" data-val="M5">M5</button>
+          <button class="chip" data-val="M15">M15</button>
+          <button class="chip" data-val="M30">M30</button>
+          <button class="chip" data-val="H1">H1</button>
+        </div>
       </div>
-      <div class="key-hint">Gratis di <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a></div>
-    </div>
 
-    <div class="voice-toggle-row">
-      <span>🔊 AI Bicara (Text-to-Speech)</span>
-      <div class="switch" id="voiceSwitch" onclick="toggleVoiceSetting()"></div>
-    </div>
+      <div class="field-group">
+        <label class="field-label">Kategori Strategi</label>
+        <div class="chip-row" id="catRow">
+          <button class="chip active" data-val="Scalping">Scalping</button>
+          <button class="chip" data-val="Intraday">Intraday</button>
+          <button class="chip" data-val="Swing">Swing</button>
+        </div>
+      </div>
 
-    <button class="clear-history-btn" onclick="clearHistory()">🗑 HAPUS SEMUA RIWAYAT CHAT</button>
+      <div class="field-group">
+        <label class="field-label">Tujuan / Gaya Risiko</label>
+        <select class="field-input" id="goalSelect">
+          <option value="Balanced (R:R standar 1:1.5–1:3)">Balanced (R:R 1:1.5–1:3)</option>
+          <option value="Konservatif (konfirmasi ketat, sinyal sedikit)">Konservatif</option>
+          <option value="Agresif (peluang lebih banyak, risiko lebih tinggi)">Agresif</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Catatan Tambahan (opsional)</label>
+        <textarea class="field-input field-textarea" id="notesInput" placeholder="cth: fokus di sesi London, abaikan news spike, dll"></textarea>
+      </div>
+
+      <button class="save-settings-btn" onclick="toggleSettings()">Simpan Pengaturan</button>
+    </div>
   </div>
 
-  <!-- Chat -->
-  <div class="chat-area" id="chatArea">
-    <div class="empty-state" id="emptyState">
-      <div class="big-icon">⚡</div>
-      <div class="title">SIAP MEMBANTU</div>
-      <div class="sub">Ketik pertanyaan, upload gambar/chart, atau tanya soal kode.<br><br>Sistem otomatis pilih AI terbaik:<br>📈 Gambar/market → Gemini<br>💻 Kode/error → DeepSeek<br>💬 Lainnya → Groq</div>
-    </div>
-  </div>
+  <main>
 
-  <!-- Pending image -->
-  <div class="pending-image" id="pendingImage">
-    <img id="pendingImagePreview" alt="preview">
-    <div class="info">Gambar siap dikirim — Gemini akan menganalisa</div>
-    <button class="remove-img" onclick="removePendingImage()">✕</button>
-  </div>
-
-  <!-- Input -->
-  <div class="input-area">
-    <div class="input-row">
-      <button class="round-btn" onclick="document.getElementById('fileInput').click()" title="Upload gambar">📎</button>
+    <div class="card">
+      <div class="card-label">01 — Upload Chart</div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+        <div class="upload-title">Tap untuk upload screenshot</div>
+        <div class="upload-hint">PNG / JPG · chart sesuai timeframe di setting</div>
+      </div>
       <input type="file" id="fileInput" accept="image/*">
-      <textarea id="messageInput" placeholder="Ketik pesan..." rows="1" onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
-      <button class="round-btn send" id="sendBtn" onclick="sendMessage()" title="Kirim">➤</button>
+
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyzeChart()">
+        <span class="spinner"></span>
+        <span class="btn-label" id="btnLabel" data-loading="Menganalisa...">Analisa Sekarang</span>
+      </button>
+
+      <div class="status-line" id="statusLine">
+        <span class="pulse-dot"></span>
+        <span class="status-text" id="statusText">Membaca gambar chart...</span>
+      </div>
     </div>
-  </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Skeleton while loading -->
+    <div class="card skeleton-card" id="skeletonCard">
+      <div class="skel" style="height:32px; width:110px; border-radius:10px; margin-bottom:14px;"></div>
+      <div class="skel" style="height:12px; width:90%; margin-bottom:8px;"></div>
+      <div class="skel" style="height:12px; width:75%; margin-bottom:16px;"></div>
+      <div class="skel" style="height:180px; border-radius:12px;"></div>
+    </div>
+
+    <!-- Result -->
+    <div class="signal-card" id="signalCard">
+      <div class="signal-top">
+        <div class="signal-badge" id="signalBadge"></div>
+        <div class="confidence">Confidence<br><b id="confidenceVal">–</b></div>
+      </div>
+
+      <div class="reasons" id="reasonsList"></div>
+      <div class="invalid-box" id="invalidBox" style="display:none;"></div>
+
+      <div class="ladder-wrap" id="ladderWrap">
+        <div class="ladder">
+          <div class="ladder-line" id="ladderLine"></div>
+          <div class="node-labels" id="nodeLabels"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <span>⚠️</span>
+      <span><b>Bukan jaminan profit.</b> Sinyal berbasis analisa gambar chart tanpa data real-time. Selalu gunakan stop loss & atur risiko sendiri.</span>
+    </div>
+
+    <div class="card">
+      <div class="history-head">
+        <div class="card-label" style="margin-bottom:0;">Riwayat Analisa</div>
+        <button class="clear-btn" onclick="clearHistory()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          Hapus
+        </button>
+      </div>
+      <div id="historyList">
+        <div class="history-empty">Belum ada riwayat analisa</div>
+      </div>
+    </div>
+
+  </main>
+</div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// STATE & STORAGE
-// ═══════════════════════════════════════════════════════
-let apiKeys = {
-  gemini: localStorage.getItem('ta_gemini_key') || '',
-  groq: localStorage.getItem('ta_groq_key') || '',
-  deepseek: localStorage.getItem('ta_deepseek_key') || ''
-};
+  // ==== GANTI DENGAN API KEY GEMINI KAMU ====
+  const GEMINI_API_KEY = "AQ.Ab8RN6KtAcIVZEkMECaLI8RjT58dhaV08AhG1N9hOn3FH0trCw";
+  const MODEL = "gemini-2.5-flash"; // ganti jika model ini tidak tersedia di akun kamu
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-let voiceEnabled = localStorage.getItem('ta_voice_enabled') === 'true';
-let chatHistory = JSON.parse(localStorage.getItem('ta_chat_history') || '[]');
-let pendingImageBase64 = null;
-let pendingImageMime = null;
-let currentSpeakingBtn = null;
+  let uploadedImageBase64 = null;
+  let uploadedMimeType = null;
+  let history = [];
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
-function init() {
-  ['gemini','groq','deepseek'].forEach(p => {
-    if (apiKeys[p]) {
-      document.getElementById('key-' + p).value = apiKeys[p];
-      document.getElementById('dot-' + p).classList.add('ok');
-    }
-  });
-
-  updateVoiceUI();
-  renderHistory();
-}
-
-// ═══════════════════════════════════════════════════════
-// SETTINGS PANEL
-// ═══════════════════════════════════════════════════════
-function toggleSettings() {
-  document.getElementById('settingsPanel').classList.toggle('open');
-  document.getElementById('settingsToggle').classList.toggle('active');
-}
-
-function saveKey(provider) {
-  const val = document.getElementById('key-' + provider).value.trim();
-  if (!val) return;
-  apiKeys[provider] = val;
-  localStorage.setItem('ta_' + provider + '_key', val);
-  document.getElementById('dot-' + provider).classList.add('ok');
-}
-
-function toggleVoiceSetting() {
-  voiceEnabled = !voiceEnabled;
-  localStorage.setItem('ta_voice_enabled', voiceEnabled);
-  updateVoiceUI();
-}
-
-function toggleVoiceQuick() {
-  voiceEnabled = !voiceEnabled;
-  localStorage.setItem('ta_voice_enabled', voiceEnabled);
-  updateVoiceUI();
-  if (!voiceEnabled) speechSynthesis.cancel();
-}
-
-function updateVoiceUI() {
-  document.getElementById('voiceSwitch').classList.toggle('on', voiceEnabled);
-  document.getElementById('voiceQuickToggle').classList.toggle('active', voiceEnabled);
-  document.getElementById('voiceQuickToggle').textContent = voiceEnabled ? '🔊' : '🔇';
-}
-
-function clearHistory() {
-  if (!confirm('Hapus semua riwayat percakapan? Tindakan ini tidak bisa dibatalkan.')) return;
-  chatHistory = [];
-  localStorage.setItem('ta_chat_history', '[]');
-  renderHistory();
-}
-
-// ═══════════════════════════════════════════════════════
-// IMAGE UPLOAD
-// ═══════════════════════════════════════════════════════
-document.getElementById('fileInput').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const result = ev.target.result;
-    pendingImageBase64 = result.split(',')[1];
-    pendingImageMime = file.type;
-    document.getElementById('pendingImagePreview').src = result;
-    document.getElementById('pendingImage').classList.add('show');
-  };
-  reader.readAsDataURL(file);
-});
-
-function removePendingImage() {
-  pendingImageBase64 = null;
-  pendingImageMime = null;
-  document.getElementById('pendingImage').classList.remove('show');
-  document.getElementById('fileInput').value = '';
-}
-
-// ═══════════════════════════════════════════════════════
-// INPUT HANDLING
-// ═══════════════════════════════════════════════════════
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
-}
-
-function handleKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// ROUTING LOGIC
-// ═══════════════════════════════════════════════════════
-function detectProvider(message, hasImage) {
-  if (hasImage) return 'gemini';
-
-  const lower = message.toLowerCase();
-
-  const codingKeywords = ['error','bug','function','kode','script','python','javascript',
-    'html','css','debug','compile','syntax','variable','const ','def ','npm','git',
-    'console.log','traceback','exception','api key','json','sql','array','class '];
-  if (codingKeywords.some(k => lower.includes(k))) return 'deepseek';
-
-  const marketKeywords = ['market','trading','chart','saham','crypto','xau','forex',
-    'candle','resistance','support','scalping','entry','stop loss','take profit','emas'];
-  if (marketKeywords.some(k => lower.includes(k))) return 'gemini';
-
-  return 'groq';
-}
-
-function highlightMode(provider) {
-  document.querySelectorAll('.mode-chip').forEach(c => {
-    c.classList.toggle('live', c.dataset.mode === provider);
-  });
-  setTimeout(() => {
-    document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('live'));
-  }, 2500);
-}
-
-// ═══════════════════════════════════════════════════════
-// SEND MESSAGE
-// ═══════════════════════════════════════════════════════
-async function sendMessage() {
-  const input = document.getElementById('messageInput');
-  const message = input.value.trim();
-  if (!message && !pendingImageBase64) return;
-
-  const hasImage = !!pendingImageBase64;
-  const provider = detectProvider(message, hasImage);
-
-  if (!apiKeys[provider]) {
-    toggleSettings();
-    document.getElementById('key-' + provider).focus();
-    return;
-  }
-
-  const userMsg = {
-    role: 'user',
-    text: message,
-    image: hasImage ? `data:${pendingImageMime};base64,${pendingImageBase64}` : null,
-    timestamp: Date.now()
-  };
-  chatHistory.push(userMsg);
-  saveHistory();
-  renderHistory();
-
-  input.value = '';
-  autoResize(input);
-  const imgB64 = pendingImageBase64;
-  const imgMime = pendingImageMime;
-  removePendingImage();
-
-  highlightMode(provider);
-  showTypingIndicator(provider);
-
-  document.getElementById('sendBtn').disabled = true;
-
-  try {
-    let replyText;
-    if (provider === 'gemini') {
-      replyText = await callGemini(message, imgB64, imgMime);
-    } else if (provider === 'groq') {
-      replyText = await callGroq(message);
-    } else {
-      replyText = await callDeepSeek(message);
-    }
-
-    removeTypingIndicator();
-
-    const aiMsg = { role: 'ai', text: replyText, provider, timestamp: Date.now() };
-    chatHistory.push(aiMsg);
-    saveHistory();
-    renderHistory();
-
-    if (voiceEnabled) speakText(replyText, chatHistory.length - 1);
-
-  } catch (err) {
-    removeTypingIndicator();
-    const errMsg = { role: 'ai', text: '⚠ ERROR: ' + err.message, provider, isError: true, timestamp: Date.now() };
-    chatHistory.push(errMsg);
-    saveHistory();
-    renderHistory();
-  }
-
-  document.getElementById('sendBtn').disabled = false;
-}
-
-function saveHistory() {
-  localStorage.setItem('ta_chat_history', JSON.stringify(chatHistory));
-}
-
-// ═══════════════════════════════════════════════════════
-// API CALLS
-// ═══════════════════════════════════════════════════════
-async function callGemini(message, imgB64, imgMime) {
-  const parts = [];
-  if (message) parts.push({ text: message });
-  if (imgB64) parts.push({ inline_data: { mime_type: imgMime, data: imgB64 } });
-  if (!message && imgB64) parts.push({ text: 'Analisa gambar ini secara detail dan informatif dalam Bahasa Indonesia.' });
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKeys.gemini}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts }] })
-    }
-  );
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Tidak ada respon.';
-}
-
-async function callGroq(message) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKeys.groq}`
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: 'Kamu asisten AI yang membantu, ramah, dan menjawab dalam Bahasa Indonesia kecuali diminta lain.' },
-        { role: 'user', content: message }
-      ]
-    })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
-  return data.choices?.[0]?.message?.content || 'Tidak ada respon.';
-}
-
-async function callDeepSeek(message) {
-  const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKeys.deepseek}`
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages: [
-        { role: 'system', content: 'Kamu asisten coding ahli. Jawab dengan jelas, beri contoh kode jika relevan, dalam Bahasa Indonesia.' },
-        { role: 'user', content: message }
-      ]
-    })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
-  return data.choices?.[0]?.message?.content || 'Tidak ada respon.';
-}
-
-// ═══════════════════════════════════════════════════════
-// TEXT TO SPEECH
-// ═══════════════════════════════════════════════════════
-function speakText(text, msgIndex) {
-  speechSynthesis.cancel();
-  const cleaned = text.replace(/[#*_`]/g, '').replace(/\n+/g, '. ');
-  const utterance = new SpeechSynthesisUtterance(cleaned);
-  utterance.lang = 'id-ID';
-  utterance.rate = 1.0;
-  utterance.pitch = 1.0;
-
-  const btn = document.querySelector(`[data-speak-idx="${msgIndex}"]`);
-  if (btn) {
-    btn.classList.add('speaking');
-    btn.textContent = '⏸ Berhenti';
-  }
-
-  utterance.onend = () => {
-    if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Dengar'; }
-  };
-
-  speechSynthesis.speak(utterance);
-}
-
-function toggleSpeak(idx, text) {
-  if (speechSynthesis.speaking) {
-    speechSynthesis.cancel();
-    document.querySelectorAll('.msg-actions button.speaking').forEach(b => {
-      b.classList.remove('speaking'); b.textContent = '🔊 Dengar';
+  // ---- Settings panel ----
+  function toggleSettings(){ document.getElementById('settingsPanel').classList.toggle('open'); }
+  document.querySelectorAll('.chip-row').forEach(row=>{
+    row.addEventListener('click', e=>{
+      if(e.target.classList.contains('chip')){
+        row.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        e.target.classList.add('active');
+      }
     });
-    return;
-  }
-  speakText(text, idx);
-}
+  });
+  function getActiveChip(rowId){ return document.querySelector('#'+rowId+' .chip.active').dataset.val; }
 
-// ═══════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════
-function renderHistory() {
-  const area = document.getElementById('chatArea');
-  const empty = document.getElementById('emptyState');
-
-  if (chatHistory.length === 0) {
-    area.innerHTML = '';
-    area.appendChild(empty);
-    empty.style.display = 'flex';
-    return;
-  }
-
-  area.innerHTML = '';
-
-  chatHistory.forEach((msg, idx) => {
-    const div = document.createElement('div');
-    div.className = 'msg ' + msg.role;
-
-    let metaHtml = '';
-    if (msg.role === 'ai') {
-      const tagClass = msg.provider || 'gemini';
-      const tagLabel = { gemini: 'GEMINI', groq: 'GROQ', deepseek: 'DEEPSEEK' }[msg.provider] || 'AI';
-      metaHtml = `<div class="msg-meta"><span class="provider-tag ${tagClass}">${tagLabel}</span></div>`;
-    }
-
-    let imgHtml = msg.image ? `<img src="${msg.image}" class="msg-img-preview">` : '';
-    let textHtml = escapeHtml(msg.text);
-
-    let actionsHtml = '';
-    if (msg.role === 'ai' && !msg.isError) {
-      actionsHtml = `<div class="msg-actions">
-        <button data-speak-idx="${idx}" onclick='toggleSpeak(${idx}, ${JSON.stringify(msg.text)})'>🔊 Dengar</button>
-      </div>`;
-    }
-
-    div.innerHTML = `
-      ${metaHtml}
-      <div class="msg-bubble">${imgHtml}${textHtml}</div>
-      ${actionsHtml}
-    `;
-    area.appendChild(div);
+  // ---- Upload handling ----
+  const fileInput = document.getElementById('fileInput');
+  const uploadZone = document.getElementById('uploadZone');
+  fileInput.addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    uploadedMimeType = file.type;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      uploadedImageBase64 = ev.target.result.split(',')[1];
+      uploadZone.classList.add('has-image');
+      uploadZone.innerHTML = `
+        <div class="preview-wrap">
+          <img src="${ev.target.result}">
+          <button class="remove-img" onclick="removeImage(event)">✕</button>
+          <div class="scan-line" id="scanLine"></div>
+        </div>`;
+    };
+    reader.readAsDataURL(file);
   });
 
-  area.scrollTop = area.scrollHeight;
+  function removeImage(e){
+    e.stopPropagation();
+    uploadedImageBase64 = null;
+    uploadZone.classList.remove('has-image');
+    uploadZone.innerHTML = `
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+      <div class="upload-title">Tap untuk upload screenshot</div>
+      <div class="upload-hint">PNG / JPG · chart sesuai timeframe di setting</div>`;
+    fileInput.value = '';
+  }
+
+  // ---- Loading animation control ----
+  const statusMessages = [
+    "Membaca struktur harga...",
+    "Mengidentifikasi level support/resistance...",
+    "Mengecek pola candlestick...",
+    "Menghitung risk-reward...",
+    "Menyusun kesimpulan sinyal..."
+  ];
+  let statusInterval = null;
+  function startLoadingUI(){
+    document.getElementById('analyzeBtn').disabled = true;
+    document.getElementById('analyzeBtn').classList.add('loading');
+    document.getElementById('btnLabel').style.visibility = 'hidden';
+    document.getElementById('statusLine').classList.add('active');
+    document.getElementById('skeletonCard').classList.add('active');
+    document.getElementById('signalCard').classList.remove('active');
+    document.getElementById('errorBox').classList.remove('active');
+    uploadZone.classList.add('scanning');
+    let i = 0;
+    const statusText = document.getElementById('statusText');
+    statusText.textContent = statusMessages[0];
+    statusInterval = setInterval(()=>{
+      i = (i+1) % statusMessages.length;
+      statusText.style.opacity = 0;
+      setTimeout(()=>{
+        statusText.textContent = statusMessages[i];
+        statusText.style.opacity = 1;
+      }, 200);
+    }, 1400);
+  }
+  function stopLoadingUI(){
+    clearInterval(statusInterval);
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('analyzeBtn').classList.remove('loading');
+    document.getElementById('btnLabel').style.visibility = 'visible';
+    document.getElementById('statusLine').classList.remove('active');
+    document.getElementById('skeletonCard').classList.remove('active');
+    uploadZone.classList.remove('scanning');
+  }
+
+  // ---- Build prompt from settings ----
+  function buildPrompt(){
+    const market = document.getElementById('marketSelect').value;
+    const tf = getActiveChip('tfRow');
+    const category = getActiveChip('catRow');
+    const goal = document.getElementById('goalSelect').value;
+    const notes = document.getElementById('notesInput').value.trim();
+
+    return `Kamu adalah analis teknikal untuk ${category} pada market ${market}, timeframe ${tf}.
+Gaya risiko yang diinginkan user: ${goal}.
+${notes ? "Catatan tambahan dari user: " + notes : ""}
+
+Analisa gambar chart yang diberikan dan balas HANYA dengan JSON valid (tanpa markdown, tanpa teks lain), dengan format persis:
+
+{
+  "signal": "BUY" atau "SELL" atau "NO_TRADE",
+  "setup_status": "confirmed" atau "conditional",
+  "trigger_condition": "jika conditional, jelaskan syarat harga yang harus terpenuhi dulu sebelum entry (misal: breakout dan close di atas 4075.00). Kosongkan jika confirmed.",
+  "confidence": angka 0-100,
+  "entry_price": angka,
+  "stop_loss": angka,
+  "take_profit": {"tp1": angka, "tp2": angka, "tp3": angka},
+  "risk_reward": {"tp1": "1:x", "tp2": "1:x", "tp3": "1:x"},
+  "valid_reasons": [
+    {"factor": "nama faktor singkat", "detail": "penjelasan konkret merujuk elemen visual di chart"}
+  ],
+  "invalidating_factors": "kondisi yang membatalkan sinyal ini, harga berapa yang jadi tanda gagal"
 }
 
-function showTypingIndicator(provider) {
-  const area = document.getElementById('chatArea');
-  const div = document.createElement('div');
-  div.className = 'msg ai';
-  div.id = 'typingIndicator';
-  const tagLabel = { gemini: 'GEMINI', groq: 'GROQ', deepseek: 'DEEPSEEK' }[provider];
-  div.innerHTML = `
-    <div class="msg-meta"><span class="provider-tag ${provider}">${tagLabel}</span></div>
-    <div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>
-  `;
-  area.appendChild(div);
-  area.scrollTop = area.scrollHeight;
-}
+Aturan penting:
+- SELALU berikan entry_price, stop_loss, dan take_profit (tp1/tp2/tp3) berupa angka, SELAMA ada bias arah (bullish atau bearish) yang terlihat di chart — walaupun belum ada breakout/konfirmasi penuh. Dalam kondisi ini, set "signal" ke arah bias tersebut (BUY/SELL), "setup_status" ke "conditional", dan isi "trigger_condition" dengan syarat masuknya.
+- Gunakan "signal": "NO_TRADE" HANYA jika gambar benar-benar tidak bisa dibaca (buram, terpotong, tidak ada candle terlihat) atau harga benar-benar sideways datar tanpa bias arah sama sekali. Ini harus jarang terjadi — jangan jadikan pilihan aman default.
+- valid_reasons minimal 2, maksimal 4, HARUS merujuk elemen visual konkret yang benar-benar terlihat di gambar (price action, level, pola candlestick, struktur trend).
+- Jangan tambahkan teks penjelasan di luar JSON.`;
+  }
 
-function removeTypingIndicator() {
-  const el = document.getElementById('typingIndicator');
-  if (el) el.remove();
-}
+  // ---- Analyze ----
+  async function analyzeChart(){
+    if(!uploadedImageBase64){
+      showError("Upload screenshot chart dulu sebelum analisa.");
+      return;
+    }
+    startLoadingUI();
+    try{
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: buildPrompt() },
+              { inline_data: { mime_type: uploadedMimeType, data: uploadedImageBase64 } }
+            ]
+          }]
+        })
+      });
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+      if(res.status === 429){
+        throw new Error("Kuota Gemini API habis (429). Coba lagi nanti atau cek limit di Google AI Studio.");
+      }
+      if(!res.ok){
+        const errText = await res.text();
+        throw new Error(`API error ${res.status}: ${errText.slice(0,150)}`);
+      }
 
-init();
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if(!rawText) throw new Error("Respons kosong dari Gemini.");
+
+      const cleaned = rawText.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+
+      renderResult(parsed);
+      addHistory(parsed);
+
+    }catch(err){
+      showError(err.message || "Terjadi kesalahan saat menganalisa.");
+    }finally{
+      stopLoadingUI();
+    }
+  }
+
+  function showError(msg){
+    const box = document.getElementById('errorBox');
+    box.textContent = "⚠ " + msg;
+    box.classList.add('active');
+  }
+
+  // ---- Render result ----
+  function renderResult(data){
+    const card = document.getElementById('signalCard');
+    const badge = document.getElementById('signalBadge');
+    card.classList.remove('buy','sell','wait');
+
+    const sig = (data.signal || "NO_TRADE").toUpperCase();
+    const isConditional = data.setup_status === 'conditional';
+    let cls = 'wait', arrow = '●', label = 'NO TRADE';
+    if(sig === 'BUY'){ cls='buy'; arrow='▲'; label = isConditional ? 'BUY · SETUP' : 'BUY'; }
+    if(sig === 'SELL'){ cls='sell'; arrow='▼'; label = isConditional ? 'SELL · SETUP' : 'SELL'; }
+    card.classList.add(cls);
+    badge.className = 'signal-badge ' + cls;
+    badge.innerHTML = `<span>${arrow}</span> ${label}`;
+
+    document.getElementById('confidenceVal').textContent = (data.confidence ?? '–') + '%';
+
+    const reasonsEl = document.getElementById('reasonsList');
+    reasonsEl.innerHTML = '';
+
+    if(isConditional && data.trigger_condition){
+      reasonsEl.innerHTML += `<div class="reason-item"><span class="rf" style="color:var(--gold-soft);">MENUNGGU</span><span class="rd"><b style="color:var(--text);">${data.trigger_condition}</b></span></div>`;
+    }
+
+    (data.valid_reasons || []).forEach(r=>{
+      reasonsEl.innerHTML += `<div class="reason-item"><span class="rf">${r.factor}</span><span class="rd">${r.detail}</span></div>`;
+    });
+
+    const invalidBox = document.getElementById('invalidBox');
+    if(data.invalidating_factors){
+      invalidBox.style.display = 'block';
+      invalidBox.innerHTML = `<b>Batal jika:</b> ${data.invalidating_factors}`;
+    } else {
+      invalidBox.style.display = 'none';
+    }
+
+    const ladderWrap = document.getElementById('ladderWrap');
+    const hasLevels = data.entry_price != null && data.stop_loss != null;
+    if(sig === 'NO_TRADE' || !hasLevels){
+      ladderWrap.style.display = 'none';
+    } else {
+      ladderWrap.style.display = 'block';
+      renderLadder(data, sig);
+    }
+
+    card.classList.add('active');
+  }
+
+  function renderLadder(data, sig){
+    const tp = data.take_profit || {};
+    const rr = data.risk_reward || {};
+    const entry = data.entry_price;
+    const sl = data.stop_loss;
+
+    const isBuy = sig === 'BUY';
+    // position from top(%) - for BUY: tp3 top, tp1, entry, sl bottom. For SELL: reversed.
+    const rows = isBuy ? [
+      {tag:'tag-tp', label:'TP3', price: tp.tp3, rr: rr.tp3, pos:12},
+      {tag:'tag-tp', label:'TP1', price: tp.tp1, rr: rr.tp1, pos:34},
+      {tag:'tag-entry', label:'ENTRY', price: entry, rr:null, pos:50},
+      {tag:'tag-sl', label:'SL', price: sl, rr:'−1', pos:78},
+    ] : [
+      {tag:'tag-sl', label:'SL', price: sl, rr:'−1', pos:12},
+      {tag:'tag-entry', label:'ENTRY', price: entry, rr:null, pos:34},
+      {tag:'tag-tp', label:'TP1', price: tp.tp1, rr: rr.tp1, pos:50},
+      {tag:'tag-tp', label:'TP3', price: tp.tp3, rr: rr.tp3, pos:78},
+    ];
+
+    const line = document.getElementById('ladderLine');
+    const labels = document.getElementById('nodeLabels');
+    line.innerHTML = '';
+    labels.innerHTML = '';
+
+    rows.forEach(r=>{
+      const color = r.tag === 'tag-tp' ? 'var(--green)' : r.tag === 'tag-sl' ? 'var(--red)' : 'var(--gold)';
+      line.innerHTML += `<div class="ladder-node" style="top:${r.pos}%; background:${color};"></div>`;
+      labels.innerHTML += `
+        <div class="node-row" style="top:${r.pos}%;">
+          <span class="node-tag ${r.tag}">${r.label}</span>
+          <span class="node-price">${r.price ?? '–'}</span>
+          ${r.rr ? `<span class="node-rr">${r.rr}</span>` : ''}
+        </div>`;
+    });
+  }
+
+  // ---- History ----
+  function addHistory(data){
+    const time = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+    history.unshift({signal: data.signal, time, tf: getActiveChip('tfRow')});
+    renderHistory();
+  }
+  function renderHistory(){
+    const el = document.getElementById('historyList');
+    if(history.length === 0){
+      el.innerHTML = '<div class="history-empty">Belum ada riwayat analisa</div>';
+      return;
+    }
+    el.innerHTML = history.map(h=>{
+      const cls = h.signal === 'BUY' ? 'green' : h.signal === 'SELL' ? 'red' : 'gold';
+      const colorMap = {green:'var(--green-soft);color:var(--green)', red:'var(--red-soft);color:var(--red)', gold:'rgba(201,162,39,0.14);color:var(--gold-soft)'};
+      return `<div class="history-item">
+        <div class="history-left">
+          <span class="history-sig" style="background:${colorMap[cls]}">${h.signal}</span>
+          <span class="history-time">${h.time} · ${h.tf}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  function clearHistory(){
+    history = [];
+    renderHistory();
+  }
 </script>
 </body>
 </html>
