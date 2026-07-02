@@ -2,7 +2,12 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B0E14">
+<link rel="manifest" href='data:application/manifest+json,{"name":"XAU Scalp","short_name":"XAUScalp","start_url":".","display":"standalone","background_color":"%230B0E14","theme_color":"%230B0E14"}'>
 <title>XAU Scalp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,13 +19,15 @@
     --red:#EF4444; --red-soft:rgba(239,68,68,0.12);
     --text:#E7E9EE; --text-dim:#8B93A7; --text-faint:#565D6E;
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html, body{overscroll-behavior:none;}
   body{
     background:radial-gradient(ellipse 600px 300px at 50% -10%, rgba(201,162,39,0.08), transparent), var(--bg);
     color:var(--text); font-family:'Inter',sans-serif; min-height:100vh;
     display:flex; justify-content:center; padding:0 0 60px;
+    padding-top:env(safe-area-inset-top); padding-bottom:calc(60px + env(safe-area-inset-bottom));
   }
-  .phone{width:100%; max-width:430px; min-height:100vh; background:var(--bg); position:relative;}
+  .phone{width:100%; max-width:430px; min-height:100vh; background:var(--bg); position:relative; padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right);}
 
   header{padding:22px 20px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border);}
   .brand{display:flex; align-items:center; gap:10px;}
@@ -30,6 +37,22 @@
   .status-pill{display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); padding:6px 10px; border-radius:99px; font-size:11px; font-family:'IBM Plex Mono',monospace; color:var(--text-dim);}
   .dot{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green);}
   .gear-btn{width:32px; height:32px; border-radius:9px; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+
+  /* Ticker marquee */
+  .ticker{overflow:hidden; white-space:nowrap; border-bottom:1px solid var(--border); background:var(--surface-2); padding:7px 0;}
+  .ticker-track{display:inline-block; padding-left:100%; animation:tickerMove 22s linear infinite; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim);}
+  .ticker-track span{margin-right:28px;}
+  .ticker-track .up{color:var(--green);}
+  .ticker-track .down{color:var(--red);}
+  @keyframes tickerMove{0%{transform:translateX(0);} 100%{transform:translateX(-100%);}}
+  @media (prefers-reduced-motion: reduce){.ticker-track{animation:none; padding-left:12px;}}
+
+  /* Ambient candle bars behind header */
+  .candle-bg{position:absolute; top:0; left:0; right:0; height:70px; display:flex; align-items:flex-end; gap:3px; padding:0 20px; overflow:hidden; opacity:0.16; pointer-events:none; z-index:0;}
+  .candle-bg span{flex:1; background:var(--gold); border-radius:2px 2px 0 0; animation:candleWave 2.6s ease-in-out infinite;}
+  .candle-bg span:nth-child(odd){background:var(--green); animation-duration:3.1s;}
+  @keyframes candleWave{0%,100%{height:20%;} 50%{height:80%;}}
+  @media (prefers-reduced-motion: reduce){.candle-bg span{animation:none; height:40%;}}
 
   main{padding:20px;}
   .card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px;}
@@ -90,7 +113,10 @@
   .invalid-box{margin-top:12px; padding:10px 12px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:10px; font-size:12px; color:var(--text-dim); line-height:1.5;}
   .invalid-box b{color:var(--red);}
 
-  .ladder-wrap{background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:18px 14px 18px 0;}
+  .ladder-wrap{background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:14px 14px 18px 0;}
+  .ladder-head{display:flex; align-items:center; justify-content:space-between; padding:0 14px 12px 14px;}
+  .copy-all-btn{display:flex; align-items:center; gap:5px; background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:5px 9px; border-radius:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; cursor:pointer;}
+  .copy-all-btn:hover{border-color:var(--gold); color:var(--gold-soft);}
   .ladder{position:relative; display:flex; height:220px;}
   .ladder-line{width:46px; position:relative; flex-shrink:0;}
   .ladder-line::after{content:''; position:absolute; left:50%; top:8px; bottom:8px; width:2px; background:linear-gradient(to bottom, var(--red) 0%, var(--red) 22%, var(--border) 22%, var(--border) 32%, var(--gold) 32%, var(--gold) 68%, var(--border) 68%, var(--border) 78%, var(--green) 78%, var(--green) 100%); transform:translateX(-50%); border-radius:2px;}
@@ -99,7 +125,11 @@
   .node-row{position:absolute; left:14px; right:0; transform:translateY(-50%); display:flex; align-items:baseline; gap:8px;}
   .node-tag{font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:0.04em; padding:2px 6px; border-radius:5px;}
   .node-price{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500;}
-  .node-rr{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-faint); margin-left:auto;}
+  .node-rr{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-faint);}
+  .copy-node-btn{margin-left:auto; background:none; border:none; color:var(--text-faint); cursor:pointer; padding:3px; display:flex; align-items:center; transition:color .15s;}
+  .copy-node-btn:hover{color:var(--gold-soft);}
+  @keyframes nodePop{from{transform:translate(-50%,-50%) scale(0);} to{transform:translate(-50%,-50%) scale(1);}}
+  @keyframes rowFadeIn{from{opacity:0; transform:translateY(calc(-50% + 6px));} to{opacity:1; transform:translateY(-50%);}}
   .tag-tp{background:var(--green-soft); color:var(--green);}
   .tag-entry{background:rgba(201,162,39,0.14); color:var(--gold-soft);}
   .tag-sl{background:var(--red-soft); color:var(--red);}
@@ -140,27 +170,49 @@
 <body>
 <div class="phone">
 
-  <header>
-    <div class="brand">
+  <header style="position:relative; overflow:hidden;">
+    <div class="candle-bg" id="candleBg"></div>
+    <div class="brand" style="position:relative; z-index:1;">
       <div class="brand-mark">Au</div>
       <div>
         <div class="brand-text">XAU Scalp</div>
         <div class="brand-sub">GEMINI VISION ENGINE</div>
       </div>
     </div>
-    <div style="display:flex; align-items:center; gap:8px;">
+    <div style="display:flex; align-items:center; gap:8px; position:relative; z-index:1;">
       <div class="status-pill"><span class="dot"></span> READY</div>
+      <button class="gear-btn" onclick="toggleFullscreen()" title="Fullscreen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.8"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+      </button>
       <button class="gear-btn" onclick="toggleSettings()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A7" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       </button>
     </div>
   </header>
 
+  <div class="ticker">
+    <div class="ticker-track" id="tickerTrack">
+      <span>XAU/USD <span class="up">▲ 4,076.20</span></span>
+      <span>Sesi: London/NY Overlap</span>
+      <span>Spread: 0.3</span>
+      <span>Status: Menunggu chart...</span>
+    </div>
+  </div>
+
   <div class="settings-panel" id="settingsPanel">
     <div class="settings-inner">
       <div class="settings-head">
         <span class="section-title">Pengaturan Analisa</span>
         <button class="close-btn" onclick="toggleSettings()">✕</button>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">API Key Gemini</label>
+        <div style="display:flex; gap:8px;">
+          <input type="password" class="field-input" id="apiKeyInput" placeholder="Tempel API key kamu di sini">
+          <button class="gear-btn" style="flex-shrink:0;" onclick="toggleKeyVisibility()" id="keyToggleBtn" title="Lihat/sembunyikan">👁</button>
+        </div>
+        <div style="font-size:10.5px; color:var(--text-faint); margin-top:6px; line-height:1.4;">Disimpan lokal di HP kamu, tidak dikirim ke server manapun selain langsung ke Gemini API.</div>
       </div>
 
       <div class="field-group">
@@ -254,6 +306,13 @@
       <div class="invalid-box" id="invalidBox" style="display:none;"></div>
 
       <div class="ladder-wrap" id="ladderWrap">
+        <div class="ladder-head">
+          <span class="card-label" style="margin-bottom:0;">Price Ladder</span>
+          <button class="copy-all-btn" onclick="copyAllLevels(this)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Salin Semua
+          </button>
+        </div>
         <div class="ladder">
           <div class="ladder-line" id="ladderLine"></div>
           <div class="node-labels" id="nodeLabels"></div>
@@ -284,13 +343,85 @@
 
 <script>
   // ==== GANTI DENGAN API KEY GEMINI KAMU ====
-  const GEMINI_API_KEY = "AQ.Ab8RN6JFS1HujpeJtpdSyMEytc94vPrpU-kPI36gSyQRlfYXVg";
+  // API key sekarang diambil dari input setting, disimpan di localStorage HP kamu (bukan ditanam di kode)
+  let GEMINI_API_KEY = "";
+  try{ GEMINI_API_KEY = localStorage.getItem('xauscalp_apikey') || ""; }catch(e){}
+  document.getElementById('apiKeyInput').value = GEMINI_API_KEY;
+  document.getElementById('apiKeyInput').addEventListener('input', e=>{
+    GEMINI_API_KEY = e.target.value.trim();
+    try{ localStorage.setItem('xauscalp_apikey', GEMINI_API_KEY); }catch(e){}
+  });
+  function toggleKeyVisibility(){
+    const inp = document.getElementById('apiKeyInput');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
   const MODEL = "gemini-2.5-flash"; // ganti jika model ini tidak tersedia di akun kamu
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+  // ---- Fullscreen ----
+  function toggleFullscreen(){
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  // ---- Ambient candle background ----
+  (function initCandles(){
+    const el = document.getElementById('candleBg');
+    let html = '';
+    for(let i=0;i<28;i++){
+      const dur = (2 + Math.random()*1.8).toFixed(2);
+      const delay = (Math.random()*2).toFixed(2);
+      html += `<span style="animation-duration:${dur}s; animation-delay:-${delay}s;"></span>`;
+    }
+    el.innerHTML = html;
+  })();
+
+  // ---- Copy to clipboard ----
+  function copyValue(text, btn){
+    navigator.clipboard.writeText(String(text)).then(()=>{
+      const original = btn.innerHTML;
+      btn.innerHTML = '✓';
+      btn.style.color = 'var(--green)';
+      setTimeout(()=>{ btn.innerHTML = original; btn.style.color = ''; }, 1100);
+    }).catch(()=>{});
+  }
+
+  // ---- Count-up number animation ----
+  function animateNumber(el, target){
+    const start = 0;
+    const dur = 500;
+    const t0 = performance.now();
+    function step(now){
+      const p = Math.min((now - t0) / dur, 1);
+      const val = start + (target - start) * (1 - Math.pow(1-p, 3));
+      el.textContent = val.toFixed(2);
+      if(p < 1) requestAnimationFrame(step);
+      else el.textContent = Number(target).toFixed(2);
+    }
+    requestAnimationFrame(step);
+  }
 
   let uploadedImageBase64 = null;
   let uploadedMimeType = null;
   let history = [];
+  let lastResult = null;
+
+  function copyAllLevels(btn){
+    if(!lastResult) return;
+    const d = lastResult;
+    const tp = d.take_profit || {};
+    const text = `${d.signal}${d.setup_status==='conditional' ? ' (SETUP)' : ''} — Entry: ${d.entry_price} | SL: ${d.stop_loss} | TP1: ${tp.tp1} | TP2: ${tp.tp2} | TP3: ${tp.tp3}`;
+    navigator.clipboard.writeText(text).then(()=>{
+      const original = btn.innerHTML;
+      btn.innerHTML = '✓ Tersalin';
+      btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)';
+      setTimeout(()=>{ btn.innerHTML = original; btn.style.color=''; btn.style.borderColor=''; }, 1200);
+    }).catch(()=>{});
+  }
 
   // ---- Settings panel ----
   function toggleSettings(){ document.getElementById('settingsPanel').classList.toggle('open'); }
@@ -414,15 +545,24 @@ Aturan penting:
 
   // ---- Analyze ----
   async function analyzeChart(){
+    if(!GEMINI_API_KEY){
+      showError("Isi API Key Gemini dulu di menu Pengaturan (ikon gear).");
+      toggleSettings();
+      return;
+    }
     if(!uploadedImageBase64){
       showError("Upload screenshot chart dulu sebelum analisa.");
       return;
     }
     startLoadingUI();
+    document.getElementById('tickerTrack').innerHTML = `<span>⚡ Mengirim chart ke Gemini...</span><span>Menganalisa struktur harga...</span><span>Mohon tunggu...</span>`;
     try{
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": GEMINI_API_KEY
+        },
         body: JSON.stringify({
           contents: [{
             parts: [
@@ -450,9 +590,11 @@ Aturan penting:
 
       renderResult(parsed);
       addHistory(parsed);
+      document.getElementById('tickerTrack').innerHTML = `<span>✓ Analisa selesai</span><span>Sinyal: <b class="${parsed.signal==='SELL'?'down':'up'}">${parsed.signal}</b></span><span>Confidence: ${parsed.confidence}%</span><span>XAU/USD live chart engine</span>`;
 
     }catch(err){
       showError(err.message || "Terjadi kesalahan saat menganalisa.");
+      document.getElementById('tickerTrack').innerHTML = `<span class="down">⚠ Analisa gagal</span><span>Cek koneksi atau API key</span><span>XAU/USD live chart engine</span>`;
     }finally{
       stopLoadingUI();
     }
@@ -466,6 +608,7 @@ Aturan penting:
 
   // ---- Render result ----
   function renderResult(data){
+    lastResult = data;
     const card = document.getElementById('signalCard');
     const badge = document.getElementById('signalBadge');
     card.classList.remove('buy','sell','wait');
@@ -479,7 +622,15 @@ Aturan penting:
     badge.className = 'signal-badge ' + cls;
     badge.innerHTML = `<span>${arrow}</span> ${label}`;
 
-    document.getElementById('confidenceVal').textContent = (data.confidence ?? '–') + '%';
+    const confEl = document.getElementById('confidenceVal');
+    confEl.textContent = '0%';
+    const target = data.confidence ?? 0;
+    let c = 0;
+    const confTimer = setInterval(()=>{
+      c += Math.ceil(target/12);
+      if(c >= target){ c = target; clearInterval(confTimer); }
+      confEl.textContent = c + '%';
+    }, 30);
 
     const reasonsEl = document.getElementById('reasonsList');
     reasonsEl.innerHTML = '';
@@ -537,15 +688,27 @@ Aturan penting:
     line.innerHTML = '';
     labels.innerHTML = '';
 
-    rows.forEach(r=>{
+    rows.forEach((r,idx)=>{
       const color = r.tag === 'tag-tp' ? 'var(--green)' : r.tag === 'tag-sl' ? 'var(--red)' : 'var(--gold)';
-      line.innerHTML += `<div class="ladder-node" style="top:${r.pos}%; background:${color};"></div>`;
+      line.innerHTML += `<div class="ladder-node" style="top:${r.pos}%; background:${color}; animation:nodePop .4s ease ${idx*0.08}s both;"></div>`;
+      const priceId = `price-${r.label.replace(/\s/g,'')}-${idx}`;
       labels.innerHTML += `
-        <div class="node-row" style="top:${r.pos}%;">
+        <div class="node-row" style="top:${r.pos}%; animation:rowFadeIn .4s ease ${idx*0.08}s both;">
           <span class="node-tag ${r.tag}">${r.label}</span>
-          <span class="node-price">${r.price ?? '–'}</span>
+          <span class="node-price" id="${priceId}">${r.price ?? '–'}</span>
           ${r.rr ? `<span class="node-rr">${r.rr}</span>` : ''}
+          ${r.price != null ? `<button class="copy-node-btn" onclick="copyValue('${r.price}', this)" title="Salin harga">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>` : ''}
         </div>`;
+    });
+
+    // count-up animation for each price node
+    rows.forEach((r,idx)=>{
+      if(r.price == null) return;
+      const priceId = `price-${r.label.replace(/\s/g,'')}-${idx}`;
+      const el = document.getElementById(priceId);
+      if(el) setTimeout(()=> animateNumber(el, Number(r.price)), idx*80);
     });
   }
 
